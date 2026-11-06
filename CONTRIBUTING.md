@@ -39,4 +39,13 @@ Please test on a real machine and say in your PR what you tested on:
 - Match the existing style, and comment anything non-obvious (especially Windows/macOS API calls).
 - Update the README when behavior or commands change.
 
+## Documentation languages
+
+The README is available in English ([README.md](README.md)), Brazilian Portuguese ([README.pt-BR.md](README.pt-BR.md)) and Spanish ([README.es.md](README.es.md)). English is the source of truth.
+
+- If your change affects the docs, update all three files if you can. If you can't translate, update the English README and say in your PR which translations still need updating. The maintainer or another contributor will follow up.
+- Keep the same structure in every language, including the `<a id="...">` anchors, so links work in all versions.
+- Command names, flags and color names (`-Install`, `blue`...) stay in English in every language.
+- Issues and pull requests can be written in English, Portuguese or Spanish.
+
 By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE) and that you'll follow the [Code of Conduct](CODE_OF_CONDUCT.md).

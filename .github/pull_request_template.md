@@ -24,4 +24,4 @@
 - [ ] The scripts still use only built-in tools (no downloads, no extra installs, no network calls)
 - [ ] Claude.app / Claude.exe is not modified
 - [ ] PowerShell changes work on Windows PowerShell 5.1; shell changes work on bash 3.2
-- [ ] I updated the README if commands or behavior changed
+- [ ] I updated the README if commands or behavior changed, in all three languages (EN / PT-BR / ES), or listed below which translations still need updating
