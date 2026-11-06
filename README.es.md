@@ -42,7 +42,7 @@ Probado en Windows 11 con Claude Desktop 4.23118 (versión de la Microsoft Store
 
 ### Crear un perfil
 
-1. **Descarga los archivos.** Arriba en esta página, haz clic en el botón verde **Code** y luego en **Download ZIP**. En tu carpeta Descargas, haz clic derecho en el archivo ZIP y elige **Extraer todo**.
+1. **Descarga los archivos.** Arriba en esta página, haz clic en el botón verde **Code** y luego en **Download ZIP**. En tu carpeta Descargas, haz clic derecho en el archivo ZIP y elige **Extraer todo**. Si usas Git, también puedes clonarlo: `git clone https://github.com/pdmoura/claude-desktop-side-by-side.git`
 
    Lee los scripts antes de ejecutarlos, como deberías hacer con cualquier script de internet. [`claude-profile.ps1`](claude-profile.ps1) es el instalador. [`claude-handoff.ps1`](claude-handoff.ps1) y la carpeta [`skills`](skills/handoff/SKILL.md) añaden [`/handoff`](#handoff).
 2. **Abre PowerShell en esa carpeta.** Abre la carpeta extraída en el Explorador de archivos, haz clic en la barra de direcciones de arriba, escribe `powershell` y pulsa **Enter**. Se abre una ventana de PowerShell, ya en la carpeta correcta.
@@ -56,7 +56,7 @@ Probado en Windows 11 con Claude Desktop 4.23118 (versión de la Microsoft Store
    - `-Color`: el color del ícono. Consulta [Colores](#colors).
    - **Opcional, solo si usas Claude Code en la terminal:** añade `-Cli` al final. También crea el comando `claude-trabajo`, que abre Claude Code en la terminal con esta cuenta. Necesita [Claude Code](https://docs.claude.com/en/docs/claude-code) instalado (el comando `claude`), y la primera vez te pide iniciar sesión.
 
-   Esto crea un acceso directo **Claude (Trabajo)** en el escritorio y en el menú Inicio. También copia los scripts a `%LOCALAPPDATA%\ClaudeProfiles\`, así los accesos directos siguen funcionando aunque borres el archivo descargado, y configura [`/handoff`](#handoff) en todas las cuentas.
+   Esto crea un acceso directo **Claude (Trabajo)** en el escritorio y en el menú Inicio. También copia los scripts a `%LOCALAPPDATA%\ClaudeProfiles\` y configura [`/handoff`](#handoff) en todas las cuentas. Todo queda instalado en tu usuario de Windows, no dentro de la carpeta descargada, así que puedes borrar esa carpeta después: los accesos directos siguen funcionando y `/handoff` funciona en cualquier proyecto.
 
 4. Repite el paso 3 con otro nombre para cada cuenta adicional.
 5. Abre **Claude (Trabajo)** e inicia sesión con **Continue with email**, escribiendo el código que te llegue por correo. No uses Google ([por qué](#sign-in-important)).
