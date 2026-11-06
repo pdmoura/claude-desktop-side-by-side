@@ -1,0 +1,69 @@
+name: Bug report
+description: Something in the scripts doesn't work as the README describes
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Please redact personal info (emails, tokens) from any output you paste.
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      placeholder: "e.g. Windows 11 24H2, macOS 15.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: install-type
+    attributes:
+      label: How is Claude Desktop installed?
+      options:
+        - Microsoft Store
+        - Installer from claude.ai (Windows)
+        - macOS app
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: claude-version
+    attributes:
+      label: Claude Desktop version
+      description: Claude menu → About Claude
+      placeholder: "e.g. 4.23118"
+  - type: textarea
+    id: command
+    attributes:
+      label: Command you ran
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Error message or output
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I'm using the latest version of the script from `main`
+          required: true
+        - label: I searched existing issues and this hasn't been reported
+          required: true

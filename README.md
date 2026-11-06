@@ -81,7 +81,7 @@ After changing a color, open the profile from its shortcut again. If you pinned 
 
 ## macOS (experimental)
 
-> 🧪 **Untested.** The macOS script uses the same Electron mechanism as the Windows one, but it hasn't been run on a Mac yet. If you try it, please [open an issue](../../issues) and say whether it worked, with your macOS and Claude versions.
+> 🧪 **Untested.** The macOS script uses the same Electron mechanism as the Windows one, but it hasn't been run on a Mac yet. If you try it, please file a [macOS test report](../../issues/new?template=macos_test_report.yml), even if everything worked.
 
 ### What to expect
 
@@ -145,6 +145,10 @@ The color is a hue shift of the Claude logo, so it keeps Claude's brightness and
 - Each profile is a full app instance, so it uses as much memory as a second Claude window would.
 - Windows: Alt+Tab may still show the default Claude icon. A small hidden PowerShell process runs for a few seconds when a profile opens (to set the taskbar icon), then exits.
 - macOS: see [What to expect](#what-to-expect).
+
+## Contributing
+
+Bug reports, macOS test reports and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for how changes are reviewed and merged, and [SECURITY.md](SECURITY.md) to report a vulnerability privately.
 
 ## License
 

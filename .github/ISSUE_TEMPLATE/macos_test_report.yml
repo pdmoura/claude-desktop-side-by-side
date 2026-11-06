@@ -1,0 +1,56 @@
+name: macOS test report
+description: Tried the experimental macOS script? Tell us how it went, even if everything worked
+labels: ["macos", "test-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for testing! Reports like this are how the macOS version stops being "experimental".
+  - type: dropdown
+    id: result
+    attributes:
+      label: Overall result
+      options:
+        - Everything worked
+        - Partly worked
+        - Didn't work
+    validations:
+      required: true
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      placeholder: "e.g. macOS 15.1 Sequoia"
+    validations:
+      required: true
+  - type: dropdown
+    id: chip
+    attributes:
+      label: Mac type
+      options:
+        - Apple Silicon (M-series)
+        - Intel
+    validations:
+      required: true
+  - type: input
+    id: claude-version
+    attributes:
+      label: Claude Desktop version
+      description: Claude menu → About Claude
+  - type: checkboxes
+    id: steps
+    attributes:
+      label: What worked? (tick everything that did)
+      options:
+        - label: "`install` created the Claude (Name) launcher with a colored icon"
+        - label: The launcher opened a second Claude window next to the main one
+        - label: Signing in with the email code worked in the second window
+        - label: The two windows stayed signed in to different accounts after restarting them
+        - label: "`list` showed the profile"
+        - label: "`uninstall --remove-data` removed everything"
+        - label: "`launch Name \"claude://...\"` delivered a sign-in link to the profile"
+  - type: textarea
+    id: details
+    attributes:
+      label: Details, errors or screenshots
+      description: Anything that didn't work, plus any error output.
