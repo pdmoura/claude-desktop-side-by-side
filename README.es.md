@@ -90,6 +90,52 @@ Después de cambiar el color, abre el perfil de nuevo desde su acceso directo. S
 
 ---
 
+## Claude Code en la terminal (CLI)
+
+### Un comando por cuenta
+
+Agrega `-Cli` al crear un perfil y también obtienes un **comando de terminal para esa cuenta**, con su propio inicio de sesión y sus propias conversaciones:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\claude-profile.ps1 -Install -Name Trabajo -Color blue -Cli
+```
+
+- Usa `claude-trabajo` en lugar de `claude`. La primera vez te pide iniciar sesión en esa cuenta.
+- Funciona en **PowerShell, CMD y PowerShell 7**. El archivo del comando se coloca junto a tu comando `claude`, así que no se agrega nada al PATH ni a tu perfil de PowerShell.
+- Su inicio de sesión y sus conversaciones se guardan en `%USERPROFILE%\.claude-trabajo`, separados de tus otras cuentas.
+- Requiere tener [Claude Code](https://docs.claude.com/en/docs/claude-code) instalado.
+- macOS: `./claude-profile.sh install Trabajo blue --cli` crea el mismo comando `claude-trabajo`.
+
+### Llevar una conversación a otra cuenta: `claude-sync` (experimental, Windows)
+
+¿Se te acabó el uso en una cuenta? Envía la conversación a otra cuenta y sigue trabajando. `-Cli` instala el comando `claude-sync`. Ejecútalo **dentro de la carpeta del proyecto**, después de cerrar esa conversación en Claude:
+
+```
+claude-sync
+
+Conversations in C:\Users\yo\Desktop\mi-app
+  #   Last used    In                 Conversation
+  1   06/11 14:02  Personal           Crea una landing page simple de Hello World en HTML y CSS
+  2   05/11 09:10  Trabajo            Arreglar la validación del formulario de contacto
+
+Which conversations? (e.g. 1  or  1,3  or  all)   > 1
+Send to which account?                            > Trabajo
+Copy or move? (C = keep it in the others too, M = remove it from the others)   > C
+```
+
+Luego abre la misma carpeta con esa cuenta: `claude-trabajo` y después `/resume`. O, en Claude Desktop, elige **Desktop** como cuenta y usa **pestaña Code > Import Claude Code CLI Sessions…**.
+
+- Solo se copian las conversaciones que elijas, y la copia más reciente siempre gana. ¿Quieres volver después? Envíala de vuelta igual (elige **Move** para quitarla de la cuenta que usaste prestada).
+- **Move** envía las otras copias a la Papelera de reciclaje. El script nunca borra la copia de Claude Desktop: bórrala desde la app.
+- **La memoria nunca se copia.** Cada cuenta mantiene sus propias notas de memoria por carpeta de proyecto.
+- ¿Moviste o renombraste la carpeta de un proyecto? Ejecuta `claude-sync -From "C:\ruta\anterior"` en la carpeta nueva para traer sus conversaciones.
+- Sin el menú: `claude-sync -Select 1 -To Trabajo`, `claude-sync -Select 1 -To Personal -Move`, `claude-sync -List`, `claude-sync -DryRun`.
+- Desde cualquier carpeta, `/resume` y luego **Ctrl+A** muestra las conversaciones de todos los proyectos. Una conversación pertenece a la carpeta donde empezó, así que mantén esa carpeta en su lugar.
+
+Probado en Windows 11 con Claude Code 2.1.318: una conversación iniciada en una cuenta, continuada en otra y devuelta conserva todo su historial. **Experimental:** depende de cómo Claude Code guarda las conversaciones hoy, así que una actualización podría romperlo.
+
+---
+
 ## macOS (experimental)
 
 > 🧪 **Sin probar.** El script de macOS usa el mismo mecanismo de Electron que el de Windows, pero todavía no se ha ejecutado en una Mac. Si lo pruebas, envía un [reporte de prueba en macOS](../../issues/new?template=macos_test_report.yml), aunque todo haya funcionado.

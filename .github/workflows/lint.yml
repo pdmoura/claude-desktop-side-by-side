@@ -17,15 +17,18 @@ jobs:
       - name: Parse with Windows PowerShell 5.1
         shell: powershell
         run: |
-          $errs = $null; $tokens = $null
-          [void][System.Management.Automation.Language.Parser]::ParseFile("$PWD\claude-profile.ps1", [ref]$tokens, [ref]$errs)
-          if ($errs) { $errs | Format-List; exit 1 }
-          Write-Output "Parses cleanly on Windows PowerShell $($PSVersionTable.PSVersion)"
+          $failed = $false
+          foreach ($file in Get-ChildItem -Path . -Filter *.ps1 -Recurse) {
+            $errs = $null; $tokens = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($file.FullName, [ref]$tokens, [ref]$errs)
+            if ($errs) { $errs | Format-List; $failed = $true } else { Write-Output "$($file.Name) parses cleanly on Windows PowerShell $($PSVersionTable.PSVersion)" }
+          }
+          if ($failed) { exit 1 }
       - name: Run PSScriptAnalyzer (errors only)
         shell: pwsh
         run: |
           if (-not (Get-Module -ListAvailable PSScriptAnalyzer)) { Install-Module PSScriptAnalyzer -Force -Scope CurrentUser }
-          $results = Invoke-ScriptAnalyzer -Path ./claude-profile.ps1 -Severity Error
+          $results = Invoke-ScriptAnalyzer -Path . -Recurse -Severity Error
           $results | Format-Table -AutoSize
           if ($results) { exit 1 }
 
