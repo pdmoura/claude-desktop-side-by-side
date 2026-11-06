@@ -1,4 +1,4 @@
-# Claude Desktop Profiles
+# Claude Desktop Side by Side
 
 [English](README.md) | [Português (Brasil)](README.pt-BR.md) | **Español**
 
@@ -6,6 +6,10 @@
   <img src="docs/two-accounts-taskbar.jpg" alt="Dos íconos de Claude Desktop en la barra de tareas de Windows: la cuenta principal en naranja y una segunda cuenta en azul" width="720">
 </p>
 <p align="center"><b>Tu cuenta principal de Claude en naranja, una segunda cuenta en azul.<br>Las dos abiertas al mismo tiempo, cada una con su propio botón en la barra de tareas.</b></p>
+
+> [!IMPORTANT]
+> **Para iniciar sesión en cada perfil adicional, usa "Continue with email" y escribe el código que recibas. No uses "Continue with Google".**
+> El inicio de sesión con Google (y el enlace del correo) te devuelve a la ventana principal de Claude, así que el nuevo perfil nunca termina de iniciar sesión. [Detalles](#sign-in-important)
 
 Usa **dos o más cuentas de Claude Desktop al mismo tiempo**, por ejemplo una cuenta personal y una del trabajo, o cuentas de dos empresas diferentes. Cada una tiene su propia ventana y su propio **ícono de color**.
 
@@ -16,7 +20,7 @@ Se acabó cerrar sesión y volver a entrar para cambiar de cuenta.
 | **Windows 10/11** | ✅ Probado | Cuentas separadas lado a lado, acceso directo de color en el escritorio y el menú Inicio **y botón de color en la barra de tareas** |
 | **macOS** | 🧪 Experimental, sin probar | Cuentas separadas lado a lado y una app lanzadora de color (Dock/Launchpad/Spotlight). La ventana abierta mantiene el ícono normal de Claude en el Dock |
 
-> **Solución alternativa no oficial, hecha por la comunidad.** No está afiliada, respaldada ni soportada por Anthropic. Usa el comportamiento estándar de Electron y del sistema operativo, no una función documentada de Claude, así que una actualización de la app podría romperla. El soporte nativo para varias cuentas se pidió en [anthropics/claude-code#36821](https://github.com/anthropics/claude-code/issues/36821).
+> **Solución alternativa no oficial, hecha por la comunidad.** No está afiliada, respaldada ni soportada por Anthropic. Usa el comportamiento estándar de Electron y del sistema operativo, no una función documentada de Claude, así que una actualización de la app podría romperla. El soporte nativo para varias cuentas se pidió en [anthropics/claude-code#18435](https://github.com/anthropics/claude-code/issues/18435). Si tú también lo quieres, deja un 👍 allí.
 
 ## Cómo funciona
 
@@ -51,7 +55,7 @@ Probado en Windows 11 con Claude Desktop 4.23118 (versión de la Microsoft Store
    Esto crea un acceso directo **Claude (Trabajo)** en el escritorio y en el menú Inicio. También copia el script a `%LOCALAPPDATA%\ClaudeProfiles\`, así los accesos directos siguen funcionando aunque borres el archivo descargado.
 
 3. Repite con otro nombre para cada cuenta adicional.
-4. Abre **Claude (Trabajo)** e [inicia sesión](#sign-in-important).
+4. Abre **Claude (Trabajo)** e inicia sesión con **Continue with email**, escribiendo el código que te llegue por correo. No uses Google ([por qué](#sign-in-important)).
 
 ### Uso diario
 
@@ -100,13 +104,13 @@ Después de cambiar el color, abre el perfil de nuevo desde su acceso directo. S
 ### Crear un perfil
 
 ```bash
-curl -O https://raw.githubusercontent.com/pdmoura/claude-desktop-profiles/main/claude-profile.sh
+curl -O https://raw.githubusercontent.com/pdmoura/claude-desktop-side-by-side/main/claude-profile.sh
 less claude-profile.sh           # léelo primero
 chmod +x claude-profile.sh
 ./claude-profile.sh install Trabajo blue
 ```
 
-Luego abre **Claude (Trabajo)** desde Spotlight, Launchpad o `~/Applications`, arrástralo al Dock si quieres e [inicia sesión](#sign-in-important).
+Luego abre **Claude (Trabajo)** desde Spotlight, Launchpad o `~/Applications`, arrástralo al Dock si quieres e inicia sesión con **Continue with email** + el código (no uses Google, [por qué](#sign-in-important)).
 
 ### Otros comandos
 

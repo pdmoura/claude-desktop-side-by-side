@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Claude Desktop Profiles - macOS version (EXPERIMENTAL, community-tested only)
+# Claude Desktop Side by Side - macOS version (EXPERIMENTAL, community-tested only)
 #
 # Run several Claude Desktop accounts side by side on macOS. Each profile is a
 # separate Claude instance with its own data folder (login, settings, history),

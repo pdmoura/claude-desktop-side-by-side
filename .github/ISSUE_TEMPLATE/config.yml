@@ -4,5 +4,5 @@ contact_links:
     url: https://support.claude.com
     about: This project is an unofficial workaround. Issues with the Claude app itself go to Anthropic support.
   - name: Security vulnerability
-    url: https://github.com/pdmoura/claude-desktop-profiles/security/advisories/new
+    url: https://github.com/pdmoura/claude-desktop-side-by-side/security/advisories/new
     about: Please report security problems privately, not as a public issue.

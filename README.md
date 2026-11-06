@@ -1,4 +1,4 @@
-# Claude Desktop Profiles
+# Claude Desktop Side by Side
 
 **English** | [Português (Brasil)](README.pt-BR.md) | [Español](README.es.md)
 
@@ -6,6 +6,10 @@
   <img src="docs/two-accounts-taskbar.jpg" alt="Two Claude Desktop icons on the Windows taskbar: the main account in orange and a second account in blue" width="720">
 </p>
 <p align="center"><b>Your main Claude account in orange, a second account in blue.<br>Both open at the same time, each with its own taskbar button.</b></p>
+
+> [!IMPORTANT]
+> **Sign in to each extra profile with "Continue with email" and type the code you receive. Don't use "Continue with Google".**
+> Google sign-in (and the link in the email) sends you back to your main Claude window, so the new profile never finishes signing in. [Details](#sign-in-important)
 
 Run **two or more Claude Desktop accounts at the same time**, for example a personal account and a work account, or accounts for two different companies. Each one gets its own window and its own **colored icon**.
 
@@ -16,7 +20,7 @@ No more logging out and back in to switch accounts.
 | **Windows 10/11** | ✅ Tested | Separate accounts side by side, colored desktop/Start-menu shortcut **and colored taskbar button** |
 | **macOS** | 🧪 Experimental, untested | Separate accounts side by side, colored launcher app (Dock/Launchpad/Spotlight). The running window keeps the normal Claude Dock icon |
 
-> **Unofficial community workaround.** Not affiliated with, endorsed by, or supported by Anthropic. It relies on standard Electron and OS behavior, not on a documented Claude feature, so an app update could break it. Native multi-account support was requested in [anthropics/claude-code#36821](https://github.com/anthropics/claude-code/issues/36821).
+> **Unofficial community workaround.** Not affiliated with, endorsed by, or supported by Anthropic. It relies on standard Electron and OS behavior, not on a documented Claude feature, so an app update could break it. Native multi-account support is requested in [anthropics/claude-code#18435](https://github.com/anthropics/claude-code/issues/18435). If you want it too, add a 👍 there.
 
 ## How it works
 
@@ -51,7 +55,7 @@ Tested on Windows 11 with Claude Desktop 4.23118 (Microsoft Store/MSIX version).
    This creates a **Claude (Work)** shortcut on your desktop and in the Start menu. It also copies the script to `%LOCALAPPDATA%\ClaudeProfiles\`, so the shortcuts keep working if you delete the download.
 
 3. Repeat with another name for each extra account.
-4. Open **Claude (Work)** and [sign in](#sign-in-important).
+4. Open **Claude (Work)** and sign in with **Continue with email**, then type the code from the email. Don't use Google ([why](#sign-in-important)).
 
 ### Everyday use
 
@@ -99,13 +103,13 @@ After changing a color, open the profile from its shortcut again. If you pinned 
 ### Install a profile
 
 ```bash
-curl -O https://raw.githubusercontent.com/pdmoura/claude-desktop-profiles/main/claude-profile.sh
+curl -O https://raw.githubusercontent.com/pdmoura/claude-desktop-side-by-side/main/claude-profile.sh
 less claude-profile.sh           # read it first
 chmod +x claude-profile.sh
 ./claude-profile.sh install Work blue
 ```
 
-Then open **Claude (Work)** from Spotlight, Launchpad or `~/Applications`, drag it to the Dock if you like, and [sign in](#sign-in-important).
+Then open **Claude (Work)** from Spotlight, Launchpad or `~/Applications`, drag it to the Dock if you like, and sign in with **Continue with email** + the code (not Google, [why](#sign-in-important)).
 
 ### Other commands
 
