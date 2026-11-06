@@ -311,7 +311,8 @@ switch ($PSCmdlet.ParameterSetName) {
     if ($Cli) { Install-CliCommand }
     Install-Handoff
     Remove-LegacySync
-    Write-Host "Open it from the shortcut and sign in with 'Continue with email' (see README)."
+    Write-Host "Open it from the shortcut and sign in: click 'Continue with email', enter your email, then type"
+    Write-Host "the code you receive by email into the app. Don't click the link in the email or use Google (see README)."
   }
 
   'Launch' {

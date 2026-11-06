@@ -8,7 +8,7 @@
 <p align="center"><b>Your main Claude account in orange, a second account in blue.<br>Both open at the same time, each with its own taskbar button.</b></p>
 
 > [!IMPORTANT]
-> **Sign in to each extra profile with "Continue with email" and type the code you receive. Don't use "Continue with Google".**
+> **Sign in to each extra profile with "Continue with email": enter your email, then type the code you receive into the app. Don't click the link in the email, and don't use "Continue with Google".**
 > Google sign-in (and the link in the email) sends you back to your main Claude window, so the new profile never finishes signing in. [Details](#sign-in-important)
 
 Run **two or more Claude Desktop accounts at the same time**, for example a personal account and a work account, or accounts for two different companies. Each one gets its own window and its own **colored icon**.
@@ -59,7 +59,7 @@ Tested on Windows 11 with Claude Desktop 4.23118 (Microsoft Store/MSIX version).
    This creates a **Claude (Work)** shortcut on your desktop and in the Start menu. It also copies the scripts to `%LOCALAPPDATA%\ClaudeProfiles\` and sets up [`/handoff`](#handoff) for every account. Everything is installed for your Windows user, not inside the downloaded folder, so you can delete that folder afterwards: the shortcuts keep working and `/handoff` works in every project.
 
 4. Repeat step 3 with another name for each extra account.
-5. Open **Claude (Work)** and sign in with **Continue with email**, then type the code from the email. Don't use Google ([why](#sign-in-important)).
+5. Open **Claude (Work)** and sign in: click **Continue with email**, enter your email, then **type the code** you receive by email into the app. Don't click the link in the email, and don't use Google ([why](#sign-in-important)).
 
 ### Everyday use
 
@@ -164,7 +164,7 @@ chmod +x claude-profile.sh
 ./claude-profile.sh install Work blue
 ```
 
-Then open **Claude (Work)** from Spotlight, Launchpad or `~/Applications`, drag it to the Dock if you like, and sign in with **Continue with email** + the code (not Google, [why](#sign-in-important)).
+Then open **Claude (Work)** from Spotlight, Launchpad or `~/Applications`, drag it to the Dock if you like, and sign in: click **Continue with email**, enter your email, then **type the code** you receive by email into the app. Don't click the link in the email, and don't use Google ([why](#sign-in-important)).
 
 ### Other commands
 
