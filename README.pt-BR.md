@@ -42,7 +42,7 @@ Testado no Windows 11 com o Claude Desktop 4.23118 (versão da Microsoft Store/M
 
 ### Criar um perfil
 
-1. **Baixe os arquivos.** No topo desta página, clique no botão verde **Code** e depois em **Download ZIP**. Na pasta Downloads, clique com o botão direito no arquivo ZIP e escolha **Extrair tudo**.
+1. **Baixe os arquivos.** No topo desta página, clique no botão verde **Code** e depois em **Download ZIP**. Na pasta Downloads, clique com o botão direito no arquivo ZIP e escolha **Extrair tudo**. Se você usa Git, também pode clonar: `git clone https://github.com/pdmoura/claude-desktop-side-by-side.git`
 
    Leia os scripts antes de executá-los, como você deve fazer com qualquer script da internet. O [`claude-profile.ps1`](claude-profile.ps1) é o instalador. O [`claude-handoff.ps1`](claude-handoff.ps1) e a pasta [`skills`](skills/handoff/SKILL.md) adicionam o [`/handoff`](#handoff).
 2. **Abra o PowerShell nessa pasta.** Abra a pasta extraída no Explorador de Arquivos, clique na barra de endereço no topo, digite `powershell` e aperte **Enter**. Uma janela do PowerShell abre, já na pasta certa.
@@ -56,7 +56,7 @@ Testado no Windows 11 com o Claude Desktop 4.23118 (versão da Microsoft Store/M
    - `-Color`: a cor do ícone. Veja [Cores](#colors).
    - **Opcional, só se você usa o Claude Code no terminal:** adicione `-Cli` no final. Isso também cria o comando `claude-trabalho`, que abre o Claude Code no terminal com essa conta. Precisa do [Claude Code](https://docs.claude.com/en/docs/claude-code) instalado (o comando `claude`), e na primeira vez pede para você entrar na conta.
 
-   Isso cria um atalho **Claude (Trabalho)** na área de trabalho e no menu Iniciar. Também copia os scripts para `%LOCALAPPDATA%\ClaudeProfiles\`, então os atalhos continuam funcionando mesmo se você apagar o arquivo baixado, e configura o [`/handoff`](#handoff) em todas as contas.
+   Isso cria um atalho **Claude (Trabalho)** na área de trabalho e no menu Iniciar. Também copia os scripts para `%LOCALAPPDATA%\ClaudeProfiles\` e configura o [`/handoff`](#handoff) em todas as contas. Tudo fica instalado no seu usuário do Windows, não dentro da pasta baixada, então você pode apagar essa pasta depois: os atalhos continuam funcionando e o `/handoff` funciona em qualquer projeto.
 
 4. Repita o passo 3 com outro nome para cada conta extra.
 5. Abra o **Claude (Trabalho)** e entre com **Continue with email**, digitando o código que chegar por e-mail. Não use o Google ([por quê](#sign-in-important)).

@@ -42,7 +42,7 @@ Tested on Windows 11 with Claude Desktop 4.23118 (Microsoft Store/MSIX version).
 
 ### Install a profile
 
-1. **Download the files.** At the top of this page, click the green **Code** button, then **Download ZIP**. In your Downloads folder, right-click the ZIP file and choose **Extract All**.
+1. **Download the files.** At the top of this page, click the green **Code** button, then **Download ZIP**. In your Downloads folder, right-click the ZIP file and choose **Extract All**. If you use Git, you can clone it instead: `git clone https://github.com/pdmoura/claude-desktop-side-by-side.git`
 
    Read the scripts before you run them, as you should with any script from the internet. [`claude-profile.ps1`](claude-profile.ps1) is the installer. [`claude-handoff.ps1`](claude-handoff.ps1) and the [`skills`](skills/handoff/SKILL.md) folder add [`/handoff`](#handoff).
 2. **Open PowerShell in that folder.** Open the extracted folder in File Explorer, click the address bar at the top, type `powershell` and press **Enter**. A PowerShell window opens, already in the right folder.
@@ -56,7 +56,7 @@ Tested on Windows 11 with Claude Desktop 4.23118 (Microsoft Store/MSIX version).
    - `-Color`: the icon color. See [Colors](#colors).
    - **Optional, only if you use Claude Code in a terminal:** add `-Cli` at the end. It also creates a `claude-work` command that opens Claude Code in the terminal with this account. It needs [Claude Code](https://docs.claude.com/en/docs/claude-code) installed (the `claude` command), and asks you to log in the first time.
 
-   This creates a **Claude (Work)** shortcut on your desktop and in the Start menu. It also copies the scripts to `%LOCALAPPDATA%\ClaudeProfiles\`, so the shortcuts keep working if you delete the download, and sets up [`/handoff`](#handoff) for every account.
+   This creates a **Claude (Work)** shortcut on your desktop and in the Start menu. It also copies the scripts to `%LOCALAPPDATA%\ClaudeProfiles\` and sets up [`/handoff`](#handoff) for every account. Everything is installed for your Windows user, not inside the downloaded folder, so you can delete that folder afterwards: the shortcuts keep working and `/handoff` works in every project.
 
 4. Repeat step 3 with another name for each extra account.
 5. Open **Claude (Work)** and sign in with **Continue with email**, then type the code from the email. Don't use Google ([why](#sign-in-important)).
