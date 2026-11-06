@@ -90,52 +90,6 @@ After changing a color, open the profile from its shortcut again. If you pinned 
 
 ---
 
-## Claude Code in the terminal (CLI)
-
-### One command per account
-
-Add `-Cli` when you install a profile and you also get a **terminal command for that account**, with its own login and its own conversations:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\claude-profile.ps1 -Install -Name Work -Color blue -Cli
-```
-
-- Run `claude-work` instead of `claude`. The first time, it asks you to log in to that account.
-- Works in **PowerShell, CMD and PowerShell 7**. The command file is placed next to your `claude` command, so nothing is added to your PATH or your PowerShell profile.
-- Its login and conversations live in `%USERPROFILE%\.claude-work`, separate from your other accounts.
-- Requires [Claude Code](https://docs.claude.com/en/docs/claude-code) to be installed.
-- macOS: `./claude-profile.sh install Work blue --cli` creates the same `claude-work` command.
-
-### Move a conversation to another account: `claude-sync` (experimental, Windows)
-
-Ran out of usage in one account? Send the conversation to another account and keep going. `-Cli` installs the `claude-sync` command. Run it **inside the project folder**, after closing that conversation in Claude:
-
-```
-claude-sync
-
-Conversations in C:\Users\me\Desktop\my-app
-  #   Last used    In                 Conversation
-  1   06/11 14:02  Personal           Start a simple Hello World landing page in HTML and CSS
-  2   05/11 09:10  Work               Fix the contact form validation
-
-Which conversations? (e.g. 1  or  1,3  or  all)   > 1
-Send to which account?                            > Work
-Copy or move? (C = keep it in the others too, M = remove it from the others)   > C
-```
-
-Then open the same folder with that account: `claude-work`, then `/resume`. Or, in Claude Desktop, choose **Desktop** as the account and use **Code tab > Import Claude Code CLI Sessions…**.
-
-- Only the conversations you pick are copied, and the newest copy always wins. Going back later? Send it back the same way (choose **Move** to remove it from the account you borrowed).
-- **Move** sends the other copies to the Recycle Bin. Claude Desktop's copy is never removed by the script: delete it in the app.
-- **Memory is never copied.** Each account keeps its own memory notes per project folder.
-- Moved or renamed a project folder? Run `claude-sync -From "C:\old\path"` in the new folder to bring its conversations along.
-- Without the menu: `claude-sync -Select 1 -To Work`, `claude-sync -Select 1 -To Personal -Move`, `claude-sync -List`, `claude-sync -DryRun`.
-- From any folder, `/resume` then **Ctrl+A** shows conversations from all projects. A conversation belongs to the folder it was started in, so keep that folder where it is.
-
-Tested on Windows 11 with Claude Code 2.1.318: a conversation started in one account, continued in another, and moved back keeps its full history. **Experimental:** it relies on how Claude Code currently stores conversations, so an update could break it.
-
----
-
 ## macOS (experimental)
 
 > 🧪 **Untested.** The macOS script uses the same Electron mechanism as the Windows one, but it hasn't been run on a Mac yet. If you try it, please file a [macOS test report](../../issues/new?template=macos_test_report.yml), even if everything worked.
