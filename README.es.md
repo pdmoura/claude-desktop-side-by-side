@@ -2,6 +2,11 @@
 
 [English](README.md) | [Português (Brasil)](README.pt-BR.md) | **Español**
 
+<p align="center">
+  <img src="docs/two-accounts-taskbar.jpg" alt="Dos íconos de Claude Desktop en la barra de tareas de Windows: la cuenta principal en naranja y una segunda cuenta en azul" width="720">
+</p>
+<p align="center"><b>Tu cuenta principal de Claude en naranja, una segunda cuenta en azul.<br>Las dos abiertas al mismo tiempo, cada una con su propio botón en la barra de tareas.</b></p>
+
 Usa **dos o más cuentas de Claude Desktop al mismo tiempo**, por ejemplo una cuenta personal y una del trabajo, o cuentas de dos empresas diferentes. Cada una tiene su propia ventana y su propio **ícono de color**.
 
 Se acabó cerrar sesión y volver a entrar para cambiar de cuenta.

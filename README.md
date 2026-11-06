@@ -2,6 +2,11 @@
 
 **English** | [Português (Brasil)](README.pt-BR.md) | [Español](README.es.md)
 
+<p align="center">
+  <img src="docs/two-accounts-taskbar.jpg" alt="Two Claude Desktop icons on the Windows taskbar: the main account in orange and a second account in blue" width="720">
+</p>
+<p align="center"><b>Your main Claude account in orange, a second account in blue.<br>Both open at the same time, each with its own taskbar button.</b></p>
+
 Run **two or more Claude Desktop accounts at the same time**, for example a personal account and a work account, or accounts for two different companies. Each one gets its own window and its own **colored icon**.
 
 No more logging out and back in to switch accounts.
