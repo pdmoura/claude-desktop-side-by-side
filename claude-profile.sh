@@ -8,7 +8,7 @@
 # Unofficial workaround - not affiliated with or supported by Anthropic.
 #
 # Usage:
-#   ./claude-profile.sh install   <Name> [color]      # color: red orange yellow green teal blue indigo purple pink, or hue 0-360
+#   ./claude-profile.sh install   <Name> [color] [--cli]   # color: red orange yellow green teal blue indigo purple pink, or hue 0-360
 #   ./claude-profile.sh launch    <Name> [claude://url]
 #   ./claude-profile.sh list
 #   ./claude-profile.sh uninstall <Name> [--remove-data]
@@ -94,9 +94,45 @@ make_icns() {   # claude_app hue out.icns
   rm -rf "$tmp"
 }
 
+MARKER="Created by claude-profile.sh (github.com/pdmoura/claude-desktop-side-by-side)"
+
+# Folder for the claude-<name> command: next to "claude" if writable, else ~/.local/bin
+cli_dir() {
+  local c dir
+  c="$(command -v claude 2>/dev/null || true)"
+  [[ -n "$c" ]] || return 1
+  dir="$(dirname "$c")"
+  if [[ -w "$dir" ]]; then echo "$dir"; else mkdir -p "$HOME/.local/bin"; echo "$HOME/.local/bin"; fi
+}
+
+install_cli() {   # name
+  local lower dir launcher
+  lower="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+  dir="$(cli_dir)" || { echo "  CLI      : skipped, Claude Code (the 'claude' command) isn't installed"; return; }
+  launcher="$dir/claude-$lower"
+  if [[ -e "$launcher" ]] && ! grep -qF "$MARKER" "$launcher"; then
+    echo "  CLI      : skipped, $launcher already exists and wasn't created by this script"; return
+  fi
+  cat > "$launcher" <<CLI
+#!/bin/sh
+# Claude Code with the $1 account. Its login and conversations live in ~/.claude-$lower
+# $MARKER
+export CLAUDE_CONFIG_DIR="\$HOME/.claude-$lower"
+exec claude "\$@"
+CLI
+  chmod +x "$launcher"
+  mkdir -p "$HOME/.claude-$lower"
+  echo "  CLI      : claude-$lower  (first run asks you to log in)"
+  case ":$PATH:" in *":$dir:"*) ;; *) echo "             Add $dir to your PATH to use it." ;; esac
+}
+
 cmd_install() {
-  local name="${1:-}" color="${2:-blue}" hue claude bid app data
+  local name="${1:-}" color="blue" cli="" arg hue claude bid app data
   check_name "$name"
+  shift
+  for arg in "$@"; do
+    if [[ "$arg" == "--cli" ]]; then cli=1; else color="$arg"; fi
+  done
   hue="$(color_to_hue "$color")"
   claude="$(find_claude)"
   bid="$(defaults read "$claude/Contents/Info" CFBundleIdentifier)"
@@ -137,6 +173,7 @@ LAUNCHER
   echo "Profile '$name' installed."
   echo "  Launcher : $app"
   echo "  Data     : $data"
+  [[ -n "$cli" ]] && install_cli "$name"
   echo "Open it from Spotlight/Launchpad (\"Claude ($name)\") or drag it to the Dock,"
   echo "then sign in with 'Continue with email' and type the code (see README)."
 }
@@ -169,6 +206,12 @@ cmd_uninstall() {
   profile_running "$name" && die "Quit the Claude ($name) window first."
   rm -rf "$(launcher_app "$name")" "$ROOT/$name"
   echo "Removed launcher for '$name'."
+  local lower dir
+  lower="$(echo "$name" | tr '[:upper:]' '[:lower:]')"
+  if dir="$(cli_dir)" && [[ -f "$dir/claude-$lower" ]] && grep -qF "$MARKER" "$dir/claude-$lower"; then
+    rm -f "$dir/claude-$lower"
+    echo "Removed the claude-$lower command (its Claude Code login and conversations stay in ~/.claude-$lower)."
+  fi
   if [[ "$flag" == "--remove-data" ]]; then
     data="$(data_dir "$name")"
     rm -rf "$data"
