@@ -138,7 +138,8 @@ LAUNCHER
   echo "  Launcher : $app"
   echo "  Data     : $data"
   echo "Open it from Spotlight/Launchpad (\"Claude ($name)\") or drag it to the Dock,"
-  echo "then sign in with 'Continue with email' and type the code (see README)."
+  echo "then sign in: click 'Continue with email', enter your email, then type the code you receive"
+  echo "by email into the app. Don't click the link in the email or use Google (see README)."
 }
 
 cmd_launch() {

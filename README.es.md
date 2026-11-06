@@ -8,7 +8,7 @@
 <p align="center"><b>Tu cuenta principal de Claude en naranja, una segunda cuenta en azul.<br>Las dos abiertas al mismo tiempo, cada una con su propio botón en la barra de tareas.</b></p>
 
 > [!IMPORTANT]
-> **Para iniciar sesión en cada perfil adicional, usa "Continue with email" y escribe el código que recibas. No uses "Continue with Google".**
+> **Para iniciar sesión en cada perfil adicional, usa "Continue with email": escribe tu correo y luego escribe en la app el código que recibas. No hagas clic en el enlace del correo y no uses "Continue with Google".**
 > El inicio de sesión con Google (y el enlace del correo) te devuelve a la ventana principal de Claude, así que el nuevo perfil nunca termina de iniciar sesión. [Detalles](#sign-in-important)
 
 Usa **dos o más cuentas de Claude Desktop al mismo tiempo**, por ejemplo una cuenta personal y una del trabajo, o cuentas de dos empresas diferentes. Cada una tiene su propia ventana y su propio **ícono de color**.
@@ -59,7 +59,7 @@ Probado en Windows 11 con Claude Desktop 4.23118 (versión de la Microsoft Store
    Esto crea un acceso directo **Claude (Trabajo)** en el escritorio y en el menú Inicio. También copia los scripts a `%LOCALAPPDATA%\ClaudeProfiles\` y configura [`/handoff`](#handoff) en todas las cuentas. Todo queda instalado en tu usuario de Windows, no dentro de la carpeta descargada, así que puedes borrar esa carpeta después: los accesos directos siguen funcionando y `/handoff` funciona en cualquier proyecto.
 
 4. Repite el paso 3 con otro nombre para cada cuenta adicional.
-5. Abre **Claude (Trabajo)** e inicia sesión con **Continue with email**, escribiendo el código que te llegue por correo. No uses Google ([por qué](#sign-in-important)).
+5. Abre **Claude (Trabajo)** e inicia sesión: haz clic en **Continue with email**, escribe tu correo y luego **escribe en la app el código** que te llegue por correo. No hagas clic en el enlace del correo y no uses Google ([por qué](#sign-in-important)).
 
 ### Uso diario
 
@@ -165,7 +165,7 @@ chmod +x claude-profile.sh
 ./claude-profile.sh install Trabajo blue
 ```
 
-Luego abre **Claude (Trabajo)** desde Spotlight, Launchpad o `~/Applications`, arrástralo al Dock si quieres e inicia sesión con **Continue with email** + el código (no uses Google, [por qué](#sign-in-important)).
+Luego abre **Claude (Trabajo)** desde Spotlight, Launchpad o `~/Applications`, arrástralo al Dock si quieres e inicia sesión: haz clic en **Continue with email**, escribe tu correo y luego **escribe en la app el código** que te llegue por correo. No hagas clic en el enlace del correo y no uses Google ([por qué](#sign-in-important)).
 
 ### Otros comandos
 
