@@ -17,7 +17,7 @@ No more logging out and back in to switch accounts.
 
 | Platform | Status | What you get |
 |---|---|---|
-| **Windows 10/11** | ✅ Tested | Separate accounts side by side, colored desktop/Start-menu shortcut **and colored taskbar button** |
+| **Windows 10/11** | ✅ Tested | Separate accounts side by side, colored desktop/Start-menu shortcut **and colored taskbar button**, plus [`/handoff`](#handoff) to continue a Claude Code conversation in another account |
 | **macOS** | 🧪 Experimental, untested | Separate accounts side by side, colored launcher app (Dock/Launchpad/Spotlight). The running window keeps the normal Claude Dock icon |
 
 > **Unofficial community workaround.** Not affiliated with, endorsed by, or supported by Anthropic. It relies on standard Electron and OS behavior, not on a documented Claude feature, so an app update could break it. Native multi-account support is requested in [anthropics/claude-code#18435](https://github.com/anthropics/claude-code/issues/18435). If you want it too, add a 👍 there.
@@ -42,20 +42,24 @@ Tested on Windows 11 with Claude Desktop 4.23118 (Microsoft Store/MSIX version).
 
 ### Install a profile
 
-1. Download [`claude-profile.ps1`](claude-profile.ps1) and read it. Always read scripts before you run them.
-2. Open PowerShell in the folder where you saved it and run:
+1. **Download the files.** At the top of this page, click the green **Code** button, then **Download ZIP**. In your Downloads folder, right-click the ZIP file and choose **Extract All**.
+
+   Read the scripts before you run them, as you should with any script from the internet. [`claude-profile.ps1`](claude-profile.ps1) is the installer. [`claude-handoff.ps1`](claude-handoff.ps1) and the [`skills`](skills/handoff/SKILL.md) folder add [`/handoff`](#handoff).
+2. **Open PowerShell in that folder.** Open the extracted folder in File Explorer, click the address bar at the top, type `powershell` and press **Enter**. A PowerShell window opens, already in the right folder.
+3. **Run the installer.** Copy this line, paste it into the PowerShell window (right-click pastes) and press **Enter**:
 
    ```powershell
    powershell -ExecutionPolicy Bypass -File .\claude-profile.ps1 -Install -Name Work -Color blue
    ```
 
-   - `-Name`: letters, numbers, `-` and `_` only (e.g. `Work`, `AcmeCorp`, `Personal`).
-   - `-Color`: see [Colors](#colors).
+   - `-Name`: a name for this account. Letters, numbers, `-` and `_` only (e.g. `Work`, `AcmeCorp`, `Personal`).
+   - `-Color`: the icon color. See [Colors](#colors).
+   - **Optional, only if you use Claude Code in a terminal:** add `-Cli` at the end. It also creates a `claude-work` command that opens Claude Code in the terminal with this account. It needs [Claude Code](https://docs.claude.com/en/docs/claude-code) installed (the `claude` command), and asks you to log in the first time.
 
-   This creates a **Claude (Work)** shortcut on your desktop and in the Start menu. It also copies the script to `%LOCALAPPDATA%\ClaudeProfiles\`, so the shortcuts keep working if you delete the download.
+   This creates a **Claude (Work)** shortcut on your desktop and in the Start menu. It also copies the scripts to `%LOCALAPPDATA%\ClaudeProfiles\`, so the shortcuts keep working if you delete the download, and sets up [`/handoff`](#handoff) for every account.
 
-3. Repeat with another name for each extra account.
-4. Open **Claude (Work)** and sign in with **Continue with email**, then type the code from the email. Don't use Google ([why](#sign-in-important)).
+4. Repeat step 3 with another name for each extra account.
+5. Open **Claude (Work)** and sign in with **Continue with email**, then type the code from the email. Don't use Google ([why](#sign-in-important)).
 
 ### Everyday use
 
@@ -80,13 +84,64 @@ Close the profile window (and quit it from the system tray) before uninstalling.
 
 After changing a color, open the profile from its shortcut again. If you pinned it to the taskbar, unpin and re-pin it, because Windows caches pinned icons.
 
+<a id="handoff"></a>
+### Continue a conversation in another account (/handoff)
+
+**This is only for Claude Code**: the **Code** tab in Claude Desktop, or `claude` in a terminal. Regular chats aren't affected. If you don't use Claude Code, you can skip this section.
+
+A Claude Code conversation normally stays in the account where you started it. With `/handoff` you can move it to another account and keep going there, with everything that was said so far. You can move it back the same way later.
+
+**Example:** you started a conversation in your main Claude window and want to continue it in **Claude (Work)**.
+
+1. In the conversation, type `/handoff Work` and send it. Use the name you gave the profile when you installed it. Claude does the rest and tells you when it's done.
+2. Don't send any more messages in that conversation in the main window.
+3. If **Claude (Work)** is already open, close it completely: right-click its icon next to the clock (in the system tray) and choose **Quit**. Then open it again from its shortcut.
+4. In **Claude (Work)**, go to the **Code** tab. The conversation is in the sidebar, under the same project folder. Click it and carry on.
+
+To bring it back, type `/handoff Desktop` in **Claude (Work)** (`Desktop` means the account of your main Claude window) and follow the same steps.
+
+**In a terminal** (if you installed with `-Cli`): after the handoff, open a terminal in the same project folder, run the account's command (for example `claude-work`), type `/resume` and pick the conversation.
+
+| Type this | What it does |
+|---|---|
+| `/handoff Work` | Moves this conversation to the Work account: its window and its `claude-work` command |
+| `/handoff Desktop` | Moves it to the account of your main Claude window |
+| `/handoff refresh` | Updates this account's window and its terminal command to the same copy, so you can switch between them |
+
+**Good to know**
+
+- **Hand off right before you switch.** Each window and each terminal command keeps its own copy of the conversation, and a handoff copies it as it is at that moment. Messages you send afterwards stay where you sent them. This also applies to switching between a window and the terminal of the same account: use `/handoff refresh` for that.
+- **Archive, don't delete.** To remove a moved conversation from one account, archive it there. Deleting it can also delete it for the other accounts.
+- **"Continued in more than one place":** this means messages were sent in two accounts without a handoff in between. Nothing is changed. Claude shows which copies have messages the others don't and asks which one to keep. The others are saved as backup files (`.diverged`), never deleted.
+- **New accounts** get `/handoff` automatically the next time you install a profile.
+- **Experimental, Windows only.** It depends on how Claude stores conversations today, which isn't documented. If an update changes that, `/handoff` stops with an error instead of changing anything.
+
+<details>
+<summary>Terminal commands (advanced)</summary>
+
+Run these in PowerShell, in the project folder. If `claude-handoff` isn't found, use `powershell -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\ClaudeProfiles\claude-handoff.ps1"` in its place.
+
+```powershell
+claude-handoff -List                         # accounts, and the conversations of this folder
+claude-handoff -To Work                      # hand off the newest conversation of this folder
+claude-handoff -To Work -Session 12eb8934    # a specific conversation (id from -List)
+claude-handoff -To Work -Prefer Desktop      # continued in two places: keep the Desktop copy
+claude-handoff -To Work -DryRun              # show what would happen, change nothing
+claude-handoff -Install                      # add /handoff to every account now
+```
+
+</details>
+
 ### Where data lives
 
 | | Location |
 |---|---|
-| Script + icons | `%LOCALAPPDATA%\ClaudeProfiles\` |
+| Scripts + icons | `%LOCALAPPDATA%\ClaudeProfiles\` |
 | Profile data (Store version) | `%LOCALAPPDATA%\Packages\Claude_<id>\LocalCache\Roaming\Claude-<Name>` (Windows redirects app data for Store apps) |
 | Profile data (classic installer) | `%APPDATA%\Claude-<Name>` |
+| Claude Code conversations, desktop app (every window) | `%USERPROFILE%\.claude\projects` |
+| Claude Code conversations, `claude-<name>` command | `%USERPROFILE%\.claude-<name>\projects` |
+| `/handoff` skill | `skills\handoff` inside each of the two folders above |
 
 ---
 
@@ -155,6 +210,7 @@ The color is a hue shift of the Claude logo, so it keeps Claude's brightness and
 - Unofficial: a Claude Desktop update could change how this behaves.
 - Each profile is a full app instance, so it uses as much memory as a second Claude window would.
 - Windows: Alt+Tab may still show the default Claude icon. A small hidden PowerShell process runs for a few seconds when a profile opens (to set the taskbar icon), then exits.
+- `/handoff` relies on undocumented Claude storage formats, and its copies are snapshots: see [/handoff](#handoff).
 - macOS: see [What to expect](#what-to-expect).
 
 ## Contributing

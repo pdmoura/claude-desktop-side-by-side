@@ -31,6 +31,7 @@ Every pull request is reviewed by the maintainer, has to pass the automatic chec
 Please test on a real machine and say in your PR what you tested on:
 
 - **Windows:** install a throwaway profile (`-Install -Name ZzTest -Color green`), open it from the shortcut, check the colored taskbar button, then `-Uninstall -Name ZzTest -RemoveData` and confirm nothing is left behind. Mention whether you have the Microsoft Store or the classic installer version of Claude.
+- **Windows, `/handoff`:** in an empty test folder, start a conversation with one account's CLI command, run `claude-handoff -To <other account>`, `/resume` it with the other account's command, then hand it back and check that the first account sees the new messages. `-DryRun` shows what a handoff would do without writing anything. Delete the test folder's conversations afterwards.
 - **macOS:** `install ZzTest green`, open the launcher, sign in with the email code, `list`, then `uninstall ZzTest --remove-data`. Mention your macOS version and Apple Silicon or Intel.
 
 ## Style
