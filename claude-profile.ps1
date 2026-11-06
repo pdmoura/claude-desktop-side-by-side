@@ -9,9 +9,16 @@
   (login, settings, history), started with Electron's --user-data-dir switch.
   Your normal Claude Desktop keeps working as before.
 
+  Installing also sets up /handoff (claude-handoff.ps1 and skills\handoff, next to this script), which
+  continues a Claude Code conversation in another account, in the desktop app or the CLI.
+
 .EXAMPLE
   # One-time setup of a profile called "Work" with a blue icon
   powershell -ExecutionPolicy Bypass -File .\claude-profile.ps1 -Install -Name Work -Color blue
+
+.EXAMPLE
+  # Same, plus a "claude-work" command for Claude Code in the terminal (its own login and conversations)
+  powershell -ExecutionPolicy Bypass -File .\claude-profile.ps1 -Install -Name Work -Color blue -Cli
 
 .EXAMPLE
   # Launch it (the shortcuts do this for you)
@@ -35,6 +42,7 @@ param(
 
   [Parameter(Mandatory = $true, ParameterSetName = 'Install')][switch]$Install,
   [Parameter(ParameterSetName = 'Install')][string]$Color = 'blue',
+  [Parameter(ParameterSetName = 'Install')][switch]$Cli,
 
   [Parameter(ParameterSetName = 'Launch')][string]$OpenUrl,
 
@@ -62,6 +70,72 @@ if ($Name) {
     (Join-Path ([Environment]::GetFolderPath('Programs')) $LinkName)
   )
   $LaunchArgs = "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$ScriptCopy`" -Name `"$Name`""
+  $CliName    = "claude-$($Name.ToLower())"                  # Claude Code (CLI) command for this account
+  $CliConfig  = Join-Path $env:USERPROFILE ".claude-$($Name.ToLower())"
+}
+$Marker = 'Created by claude-profile.ps1 (github.com/pdmoura/claude-desktop-side-by-side)'
+
+# Folder of the "claude" command (Claude Code CLI). Launchers go next to it, so they are on PATH already.
+function Get-ClaudeCliDir {
+  $cmd = Get-Command claude -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($cmd) { Split-Path $cmd.Source }
+}
+
+function Install-CliCommand {
+  $dir = Get-ClaudeCliDir
+  if (-not $dir) { Write-Warning "Claude Code (the 'claude' command) isn't installed, so '$CliName' wasn't created. Install it, then run this again with -Cli."; return }
+  $launcher = Join-Path $dir "$CliName.cmd"
+  if ((Test-Path -LiteralPath $launcher) -and -not (Select-String -LiteralPath $launcher -SimpleMatch $Marker -Quiet)) {
+    Write-Warning "$launcher already exists and wasn't created by this script, so it was left alone."; return
+  }
+  @(
+    '@echo off'
+    "rem Claude Code with the $Name account. Its login and conversations live in %USERPROFILE%\.claude-$($Name.ToLower())"
+    "rem $Marker"
+    'setlocal'
+    "set `"CLAUDE_CONFIG_DIR=%USERPROFILE%\.claude-$($Name.ToLower())`""
+    "title Claude - $Name"
+    'call claude %*'
+    'endlocal'
+  ) | Set-Content -LiteralPath $launcher -Encoding ASCII
+  New-Item -ItemType Directory -Force -Path $CliConfig | Out-Null
+  Write-Host "  CLI       : $CliName  (works in PowerShell and CMD; first run asks you to log in)"
+}
+
+# /handoff: claude-handoff.ps1 plus the Claude Code skill, for the desktop app (.claude) and every CLI account
+function Install-Handoff {
+  $srcScript = Join-Path $PSScriptRoot 'claude-handoff.ps1'
+  $srcSkill  = Join-Path $PSScriptRoot 'skills\handoff\SKILL.md'
+  $dstScript = Join-Path $Root 'claude-handoff.ps1'
+  $dstSkill  = Join-Path $Root 'skills\handoff\SKILL.md'
+  if (-not (Test-Path -LiteralPath $srcScript) -or -not (Test-Path -LiteralPath $srcSkill)) {
+    Write-Host "  (claude-handoff.ps1 and skills\handoff weren't found next to this script, so /handoff wasn't set up. Download the whole repository to get it.)"
+    return
+  }
+  if ($srcScript -ne $dstScript) { Copy-Item -LiteralPath $srcScript -Destination $dstScript -Force }
+  if ($srcSkill -ne $dstSkill) {                                # kept here so re-running the installed copy works too
+    New-Item -ItemType Directory -Force -Path (Split-Path $dstSkill) | Out-Null
+    Copy-Item -LiteralPath $srcSkill -Destination $dstSkill -Force
+  }
+  $desktopSkill = Join-Path $env:USERPROFILE '.claude\skills\handoff'
+  New-Item -ItemType Directory -Force -Path $desktopSkill | Out-Null
+  Copy-Item -LiteralPath $srcSkill -Destination (Join-Path $desktopSkill 'SKILL.md') -Force
+  & powershell -NoProfile -ExecutionPolicy Bypass -File $dstScript -Install | Out-Null   # every .claude-<name>, and the claude-handoff command
+  if ($LASTEXITCODE -ne 0) { Write-Warning "Setting up /handoff for the CLI accounts failed. Run: powershell -ExecutionPolicy Bypass -File `"$dstScript`" -Install" }
+  Write-Host "  Handoff   : /handoff <account> inside Claude Code (desktop or CLI), or claude-handoff -To <account>"
+}
+
+# claude-sync was an earlier, experimental way to move conversations. /handoff replaces it.
+function Remove-LegacySync {
+  $old = Join-Path $Root 'claude-sync.ps1'
+  $removed = $false
+  if (Test-Path -LiteralPath $old) { Remove-Item -LiteralPath $old -Force; $removed = $true }
+  $dir = Get-ClaudeCliDir
+  if ($dir) {
+    $launcher = Join-Path $dir 'claude-sync.cmd'
+    if ((Test-Path -LiteralPath $launcher) -and (Select-String -LiteralPath $launcher -SimpleMatch $Marker -Quiet)) { Remove-Item -LiteralPath $launcher -Force; $removed = $true }
+  }
+  if ($removed) { Write-Host '  Removed the old claude-sync command (replaced by /handoff).' }
 }
 
 function Get-Claude {
@@ -234,6 +308,9 @@ switch ($PSCmdlet.ParameterSetName) {
     Write-Host "Profile '$Name' installed."
     Write-Host "  Shortcuts : $($Links -join "`n              ")"
     Write-Host "  Data      : $DataDir$(if ($claude.Package) { "  (Store app: redirected to %LOCALAPPDATA%\Packages\$($claude.Package.PackageFamilyName)\LocalCache\Roaming\$ProfileId)" })"
+    if ($Cli) { Install-CliCommand }
+    Install-Handoff
+    Remove-LegacySync
     Write-Host "Open it from the shortcut and sign in with 'Continue with email' (see README)."
   }
 
@@ -261,6 +338,14 @@ switch ($PSCmdlet.ParameterSetName) {
     foreach ($l in $Links) { Remove-Item -LiteralPath $l -Force -ErrorAction SilentlyContinue }
     Remove-Item -LiteralPath $ProfileDir -Recurse -Force -ErrorAction SilentlyContinue
     Write-Host "Removed shortcuts and icon for '$Name'."
+    $cliDir = Get-ClaudeCliDir
+    if ($cliDir) {
+      $launcher = Join-Path $cliDir "$CliName.cmd"
+      if ((Test-Path -LiteralPath $launcher) -and (Select-String -LiteralPath $launcher -SimpleMatch $Marker -Quiet)) {
+        Remove-Item -LiteralPath $launcher -Force
+        Write-Host "Removed the '$CliName' command. Its Claude Code login and conversations are kept in $CliConfig (delete that folder yourself if you want)."
+      }
+    }
     if ($RemoveData) {
       $targets = @($DataDir)
       $pkg = (Get-Claude).Package
@@ -276,9 +361,15 @@ switch ($PSCmdlet.ParameterSetName) {
 
   'List' {
     if (-not (Test-Path $Root)) { Write-Host 'No profiles installed.'; return }
-    Get-ChildItem -LiteralPath $Root -Directory | ForEach-Object {
+    $cliDir = Get-ClaudeCliDir
+    Get-ChildItem -LiteralPath $Root -Directory | Where-Object { $_.Name -ne 'skills' } | ForEach-Object {
       $dir = Join-Path $env:APPDATA "Claude-$($_.Name)"
-      [pscustomobject]@{ Profile = $_.Name; Running = [bool](Get-ProfileProcessIds $dir).Count }
+      $cmd = "claude-$($_.Name.ToLower())"
+      [pscustomobject]@{
+        Profile = $_.Name
+        Running = [bool](Get-ProfileProcessIds $dir).Count
+        CLI     = if ($cliDir -and (Test-Path -LiteralPath (Join-Path $cliDir "$cmd.cmd"))) { $cmd } else { '-' }
+      }
     } | Format-Table -AutoSize
   }
 }
