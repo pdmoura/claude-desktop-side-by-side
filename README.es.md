@@ -42,21 +42,24 @@ Probado en Windows 11 con Claude Desktop 4.23118 (versión de la Microsoft Store
 
 ### Crear un perfil
 
-1. Descarga este repositorio (**Code > Download ZIP** y luego extráelo) y lee los scripts. Lee siempre los scripts antes de ejecutarlos. [`claude-profile.ps1`](claude-profile.ps1) es el instalador; [`claude-handoff.ps1`](claude-handoff.ps1) y la carpeta [`skills/handoff`](skills/handoff/SKILL.md) añaden [`/handoff`](#handoff).
-2. Abre PowerShell en la carpeta extraída y ejecuta:
+1. **Descarga los archivos.** Arriba en esta página, haz clic en el botón verde **Code** y luego en **Download ZIP**. En tu carpeta Descargas, haz clic derecho en el archivo ZIP y elige **Extraer todo**.
+
+   Lee los scripts antes de ejecutarlos, como deberías hacer con cualquier script de internet. [`claude-profile.ps1`](claude-profile.ps1) es el instalador. [`claude-handoff.ps1`](claude-handoff.ps1) y la carpeta [`skills`](skills/handoff/SKILL.md) añaden [`/handoff`](#handoff).
+2. **Abre PowerShell en esa carpeta.** Abre la carpeta extraída en el Explorador de archivos, haz clic en la barra de direcciones de arriba, escribe `powershell` y pulsa **Enter**. Se abre una ventana de PowerShell, ya en la carpeta correcta.
+3. **Ejecuta el instalador.** Copia esta línea, pégala en la ventana de PowerShell (el clic derecho pega) y pulsa **Enter**:
 
    ```powershell
-   powershell -ExecutionPolicy Bypass -File .\claude-profile.ps1 -Install -Name Trabajo -Color blue -Cli
+   powershell -ExecutionPolicy Bypass -File .\claude-profile.ps1 -Install -Name Trabajo -Color blue
    ```
 
-   - `-Name`: solo letras sin tilde, números, `-` y `_` (p. ej. `Trabajo`, `EmpresaX`, `Personal`).
-   - `-Color`: consulta [Colores](#colors).
-   - `-Cli` (opcional): también crea el comando `claude-trabajo`, que es Claude Code en la terminal con el inicio de sesión y las conversaciones de esa cuenta. Necesita [Claude Code](https://docs.claude.com/en/docs/claude-code) instalado (el comando `claude`). La primera vez te pide iniciar sesión.
+   - `-Name`: un nombre para esta cuenta. Solo letras sin tilde, números, `-` y `_` (p. ej. `Trabajo`, `EmpresaX`, `Personal`).
+   - `-Color`: el color del ícono. Consulta [Colores](#colors).
+   - **Opcional, solo si usas Claude Code en la terminal:** añade `-Cli` al final. También crea el comando `claude-trabajo`, que abre Claude Code en la terminal con esta cuenta. Necesita [Claude Code](https://docs.claude.com/en/docs/claude-code) instalado (el comando `claude`), y la primera vez te pide iniciar sesión.
 
    Esto crea un acceso directo **Claude (Trabajo)** en el escritorio y en el menú Inicio. También copia los scripts a `%LOCALAPPDATA%\ClaudeProfiles\`, así los accesos directos siguen funcionando aunque borres el archivo descargado, y configura [`/handoff`](#handoff) en todas las cuentas.
 
-3. Repite con otro nombre para cada cuenta adicional.
-4. Abre **Claude (Trabajo)** e inicia sesión con **Continue with email**, escribiendo el código que te llegue por correo. No uses Google ([por qué](#sign-in-important)).
+4. Repite el paso 3 con otro nombre para cada cuenta adicional.
+5. Abre **Claude (Trabajo)** e inicia sesión con **Continue with email**, escribiendo el código que te llegue por correo. No uses Google ([por qué](#sign-in-important)).
 
 ### Uso diario
 
@@ -84,31 +87,50 @@ Después de cambiar el color, abre el perfil de nuevo desde su acceso directo. S
 <a id="handoff"></a>
 ### Continuar una conversación en otra cuenta (/handoff)
 
-Una conversación de Claude Code (la pestaña **Code**, o `claude` en la terminal) pertenece a la cuenta en la que se empezó. `/handoff` la lleva a otra cuenta, para que sigas donde la dejaste, con todo el historial, en la app o en la terminal, y después vuelvas.
+**Esto es solo para Claude Code**: la pestaña **Code** de Claude Desktop, o `claude` en la terminal. Los chats normales no cambian. Si no usas Claude Code, puedes saltarte esta sección.
 
-En cualquier sesión de Claude Code, en cualquier ventana o terminal, escribe:
+Normalmente, una conversación de Claude Code se queda en la cuenta donde la empezaste. Con `/handoff` puedes llevarla a otra cuenta y seguir allí, con todo lo que ya se dijo. Después puedes traerla de vuelta de la misma forma.
 
-```text
-/handoff Trabajo     seguir esta conversación en la cuenta Trabajo
-/handoff Desktop     la cuenta con la que está conectada la ventana principal de Claude
-/handoff refresh     sincronizar las copias de esta cuenta en la app y en la terminal (claude-trabajo)
+**Ejemplo:** empezaste una conversación en la ventana principal de Claude y quieres seguirla en **Claude (Trabajo)**.
+
+1. En la conversación, escribe `/handoff Trabajo` y envíalo. Usa el nombre que le diste al perfil al instalarlo. Claude hace el resto y te avisa cuando termina.
+2. No envíes más mensajes en esa conversación en la ventana principal.
+3. Si **Claude (Trabajo)** ya está abierto, ciérralo por completo: haz clic derecho en su ícono junto al reloj (en la bandeja del sistema) y elige **Salir**. Luego ábrelo de nuevo desde su acceso directo.
+4. En **Claude (Trabajo)**, ve a la pestaña **Code**. La conversación está en la barra lateral, dentro de la misma carpeta del proyecto. Haz clic en ella y sigue.
+
+Para traerla de vuelta, escribe `/handoff Desktop` en **Claude (Trabajo)** (`Desktop` es la cuenta de la ventana principal de Claude) y sigue los mismos pasos.
+
+**En la terminal** (si instalaste con `-Cli`): después del handoff, abre una terminal en la misma carpeta del proyecto, ejecuta el comando de la cuenta (por ejemplo `claude-trabajo`), escribe `/resume` y elige la conversación.
+
+| Escribe | Qué hace |
+|---|---|
+| `/handoff Trabajo` | Lleva esta conversación a la cuenta Trabajo: su ventana y su comando `claude-trabajo` |
+| `/handoff Desktop` | La lleva a la cuenta de la ventana principal de Claude |
+| `/handoff refresh` | Deja la ventana y el comando de terminal de esta cuenta con la misma copia, para que puedas cambiar entre ellos |
+
+**Es bueno saber**
+
+- **Haz el handoff justo antes de cambiar.** Cada ventana y cada comando de terminal guarda su propia copia de la conversación, y el handoff la copia tal como está en ese momento. Lo que envíes después se queda solo donde lo enviaste. Esto también vale para cambiar entre la ventana y la terminal de la misma cuenta: usa `/handoff refresh` en ese caso.
+- **Archiva, no borres.** Para quitar de una cuenta una conversación que llevaste a otra, archívala. Borrarla puede borrarla también en las otras cuentas.
+- **"Siguió en más de un lugar":** significa que se enviaron mensajes en dos cuentas sin un handoff de por medio. No se cambia nada. Claude muestra qué copias tienen mensajes que las otras no tienen y pregunta cuál conservar. Las demás se guardan como archivos de respaldo (`.diverged`), nunca se borran.
+- **Las cuentas nuevas** reciben `/handoff` automáticamente la próxima vez que instales un perfil.
+- **Experimental, solo en Windows.** Depende de cómo Claude guarda las conversaciones hoy, algo que no está documentado. Si una actualización lo cambia, `/handoff` se detiene con un error en vez de cambiar nada.
+
+<details>
+<summary>Comandos de terminal (avanzado)</summary>
+
+Ejecútalos en PowerShell, en la carpeta del proyecto. Si no se encuentra `claude-handoff`, usa `powershell -ExecutionPolicy Bypass -File "$env:LOCALAPPDATA\ClaudeProfiles\claude-handoff.ps1"` en su lugar.
+
+```powershell
+claude-handoff -List                            # cuentas y las conversaciones de esta carpeta
+claude-handoff -To Trabajo                      # handoff de la conversación más reciente de esta carpeta
+claude-handoff -To Trabajo -Session 12eb8934    # una conversación concreta (id de -List)
+claude-handoff -To Trabajo -Prefer Desktop      # siguió en dos lugares: conservar la copia de Desktop
+claude-handoff -To Trabajo -DryRun              # mostrar qué pasaría, sin cambiar nada
+claude-handoff -Install                         # añadir /handoff a todas las cuentas ahora
 ```
 
-Después:
-
-1. Deja de enviar mensajes en el lugar que estás dejando.
-2. **App:** si la ventana a la que vas ya está abierta, ciérrala por completo (ícono en la bandeja del sistema > **Salir**) y ábrela de nuevo. La conversación aparece en la barra lateral, dentro de la carpeta del proyecto.
-3. **Terminal:** en la misma carpeta, ejecuta el comando de la cuenta (por ejemplo `claude-trabajo`) y escribe `/resume`.
-
-Es bueno saber:
-
-- **La app y cada cuenta de la terminal guardan copias separadas** de la conversación, aunque sea la misma cuenta. Ejecuta `/handoff` (o `/handoff refresh`) justo antes de cada cambio: lo que envíes después se queda solo donde lo enviaste.
-- Cada handoff también actualiza la cuenta desde la que sales, así ambos lados quedan con la misma copia.
-- Si una conversación siguió en dos lugares sin un handoff, `/handoff` se detiene y muestra qué copias tienen mensajes que las otras no tienen. Elige una con `claude-handoff -To Trabajo -Prefer <copia>`; las demás se guardan antes como archivos `.diverged`. Nunca borra nada.
-- Para quitar una conversación de una cuenta, **archívala** en vez de borrarla. Borrarla puede eliminar también el archivo de la conversación que usan las otras cuentas.
-- En la terminal, fuera de Claude: `claude-handoff -List` muestra las cuentas y las conversaciones de la carpeta actual, y `claude-handoff -To Trabajo` hace el handoff de la más reciente de la carpeta actual.
-- Las cuentas nuevas reciben el skill `/handoff` la próxima vez que instales un perfil o hagas un handoff. `claude-handoff -Install` lo hace en el momento.
-- **Experimental:** depende de cómo Claude Desktop y Claude Code guardan las conversaciones hoy, algo que no está documentado. Si una actualización lo cambia, se detiene con un error en vez de escribir nada. Por ahora, solo en Windows.
+</details>
 
 ### Dónde se guardan los datos
 
