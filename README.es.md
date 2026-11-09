@@ -15,6 +15,8 @@ Usa **dos o más cuentas de Claude Desktop al mismo tiempo**, por ejemplo una cu
 
 Se acabó cerrar sesión y volver a entrar para cambiar de cuenta.
 
+**Ir a:** [Instalar en Windows](#install-windows) · [Instalar en macOS](#macos-experimental) · [Iniciar sesión](#sign-in-important) · [`/handoff`](#handoff)
+
 | Plataforma | Estado | Qué obtienes |
 |---|---|---|
 | **Windows 10/11** | ✅ Probado | Cuentas separadas lado a lado, acceso directo de color en el escritorio y el menú Inicio **y botón de color en la barra de tareas**, además de [`/handoff`](#handoff) para seguir una conversación de Claude Code en otra cuenta |
@@ -40,26 +42,55 @@ Se acabó cerrar sesión y volver a entrar para cambiar de cuenta.
 
 Probado en Windows 11 con Claude Desktop 4.23118 (versión de la Microsoft Store/MSIX). El instalador clásico está soportado por el script, pero se ha probado menos. Los reportes son bienvenidos.
 
+<a id="install-windows"></a>
 ### Crear un perfil
+
+Hay dos formas de instalar. Las dos hacen exactamente lo mismo, así que elige una.
+
+#### Instalación rápida (una línea)
+
+1. Abre el menú **Inicio**, escribe `powershell` y pulsa **Enter**. El Símbolo del sistema (`cmd`) también funciona.
+2. Copia esta línea, pégala en la ventana (**Ctrl+V** o clic derecho) y pulsa **Enter**:
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -Command "cd ([IO.Path]::GetTempPath()); iwr https://github.com/pdmoura/claude-desktop-side-by-side/archive/refs/heads/main.zip -OutFile claude-side-by-side.zip -UseBasicParsing; Expand-Archive claude-side-by-side.zip claude-side-by-side -Force; & .\claude-side-by-side\claude-desktop-side-by-side-main\claude-profile.ps1 -Install -Name Trabajo -Color blue"
+   ```
+
+   El final de la línea, `-Name Trabajo -Color blue`, es el nombre de la cuenta y el color de su ícono. Puedes cambiarlos antes de pulsar Enter: consulta [Opciones](#install-options).
+
+Esto descarga la versión actual de este proyecto en tu carpeta Temp y ejecuta el instalador de inmediato. Si prefieres leer los scripts antes de ejecutarlos, usa el paso a paso de abajo.
+
+#### Paso a paso (descargando primero)
 
 1. **Descarga los archivos.** Arriba en esta página, haz clic en el botón verde **Code** y luego en **Download ZIP**. En tu carpeta Descargas, haz clic derecho en el archivo ZIP y elige **Extraer todo**. Si usas Git, también puedes clonarlo: `git clone https://github.com/pdmoura/claude-desktop-side-by-side.git`
 
    Lee los scripts antes de ejecutarlos, como deberías hacer con cualquier script de internet. [`claude-profile.ps1`](claude-profile.ps1) es el instalador. [`claude-handoff.ps1`](claude-handoff.ps1) y la carpeta [`skills`](skills/handoff/SKILL.md) añaden [`/handoff`](#handoff).
-2. **Abre PowerShell en esa carpeta.** Abre la carpeta extraída en el Explorador de archivos, haz clic en la barra de direcciones de arriba, escribe `powershell` y pulsa **Enter**. Se abre una ventana de PowerShell, ya en la carpeta correcta.
-3. **Ejecuta el instalador.** Copia esta línea, pégala en la ventana de PowerShell (el clic derecho pega) y pulsa **Enter**:
+2. **Abre PowerShell en esa carpeta.** Abre la carpeta extraída en el Explorador de archivos. Si solo ves otra carpeta con el mismo nombre, ábrela también: estás en el lugar correcto cuando ves el archivo `claude-profile.ps1`. Luego haz clic en la barra de direcciones de arriba, escribe `powershell` y pulsa **Enter**. Se abre una ventana de PowerShell, ya en la carpeta correcta.
+3. **Ejecuta el instalador.** Copia esta línea, pégala en la ventana de PowerShell (**Ctrl+V** o clic derecho) y pulsa **Enter**:
 
    ```powershell
    powershell -ExecutionPolicy Bypass -File .\claude-profile.ps1 -Install -Name Trabajo -Color blue
    ```
 
-   - `-Name`: un nombre para esta cuenta. Solo letras sin tilde, números, `-` y `_` (p. ej. `Trabajo`, `EmpresaX`, `Personal`).
-   - `-Color`: el color del ícono. Consulta [Colores](#colors).
-   - **Opcional, solo si usas Claude Code en la terminal:** añade `-Cli` al final. También crea el comando `claude-trabajo`, que abre Claude Code en la terminal con esta cuenta. Necesita [Claude Code](https://docs.claude.com/en/docs/claude-code) instalado (el comando `claude`), y la primera vez te pide iniciar sesión.
+<a id="install-options"></a>
+#### Opciones
 
-   Esto crea un acceso directo **Claude (Trabajo)** en el escritorio y en el menú Inicio. También copia los scripts a `%LOCALAPPDATA%\ClaudeProfiles\` y configura [`/handoff`](#handoff) en todas las cuentas. Todo queda instalado en tu usuario de Windows, no dentro de la carpeta descargada, así que puedes borrar esa carpeta después: los accesos directos siguen funcionando y `/handoff` funciona en cualquier proyecto.
+Van al final de la línea de instalación, en cualquiera de las dos formas. En la instalación rápida, déjalas antes de las comillas `"` del final.
 
-4. Repite el paso 3 con otro nombre para cada cuenta adicional.
-5. Abre **Claude (Trabajo)** e inicia sesión: haz clic en **Continue with email**, escribe tu correo y luego **escribe en la app el código** que te llegue por correo. No hagas clic en el enlace del correo y no uses Google ([por qué](#sign-in-important)).
+- `-Name`: un nombre para esta cuenta. Solo letras sin tilde, números, `-` y `_` (p. ej. `Trabajo`, `EmpresaX`, `Personal`).
+- `-Color`: el color del ícono. Consulta [Colores](#colors).
+- **Opcional, solo si usas Claude Code en la terminal:** añade `-Cli` después del color. También crea el comando `claude-trabajo`, que abre Claude Code en la terminal con esta cuenta. Necesita [Claude Code](https://docs.claude.com/en/docs/claude-code) instalado (el comando `claude`), y la primera vez te pide iniciar sesión.
+
+#### Qué deberías ver
+
+Cuando termina, la ventana muestra `Profile 'Trabajo' installed.` y aparece un acceso directo **Claude (Trabajo)** en el escritorio y en el menú Inicio. Si en su lugar aparece un mensaje de error, [abre un issue](../../issues) y pega el mensaje allí.
+
+El instalador también copia los scripts a `%LOCALAPPDATA%\ClaudeProfiles\` y configura [`/handoff`](#handoff) en todas las cuentas. Todo queda instalado en tu usuario de Windows, no dentro de la carpeta descargada, así que puedes borrar esa carpeta después: los accesos directos siguen funcionando y `/handoff` funciona en cualquier proyecto.
+
+#### Próximos pasos
+
+1. **Inicia sesión.** Abre **Claude (Trabajo)**, haz clic en **Continue with email**, escribe tu correo y luego **escribe en la app el código** que te llegue por correo. No hagas clic en el enlace del correo y no uses Google ([por qué](#sign-in-important)).
+2. **Añade más cuentas.** Ejecuta la línea de instalación otra vez, con otro nombre y otro color, para cada cuenta adicional.
 
 ### Uso diario
 

@@ -15,6 +15,8 @@ Run **two or more Claude Desktop accounts at the same time**, for example a pers
 
 No more logging out and back in to switch accounts.
 
+**Jump to:** [Install on Windows](#install-windows) · [Install on macOS](#macos-experimental) · [Sign in](#sign-in-important) · [`/handoff`](#handoff)
+
 | Platform | Status | What you get |
 |---|---|---|
 | **Windows 10/11** | ✅ Tested | Separate accounts side by side, colored desktop/Start-menu shortcut **and colored taskbar button**, plus [`/handoff`](#handoff) to continue a Claude Code conversation in another account |
@@ -40,26 +42,55 @@ No more logging out and back in to switch accounts.
 
 Tested on Windows 11 with Claude Desktop 4.23118 (Microsoft Store/MSIX version). The classic installer is supported by the script but less tested. Reports are welcome.
 
+<a id="install-windows"></a>
 ### Install a profile
+
+There are two ways to install. Both do exactly the same thing, so pick one.
+
+#### Quick install (one line)
+
+1. Open the **Start** menu, type `powershell` and press **Enter**. Command Prompt (`cmd`) works too.
+2. Copy this line, paste it into the window (**Ctrl+V** or right-click) and press **Enter**:
+
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -Command "cd ([IO.Path]::GetTempPath()); iwr https://github.com/pdmoura/claude-desktop-side-by-side/archive/refs/heads/main.zip -OutFile claude-side-by-side.zip -UseBasicParsing; Expand-Archive claude-side-by-side.zip claude-side-by-side -Force; & .\claude-side-by-side\claude-desktop-side-by-side-main\claude-profile.ps1 -Install -Name Work -Color blue"
+   ```
+
+   The end of the line, `-Name Work -Color blue`, is the account's name and its icon color. You can change them before pressing Enter: see [Options](#install-options).
+
+This downloads the current version of this project to your Temp folder and runs the installer right away. If you'd rather read the scripts before running them, use the step-by-step way below.
+
+#### Step by step (download first)
 
 1. **Download the files.** At the top of this page, click the green **Code** button, then **Download ZIP**. In your Downloads folder, right-click the ZIP file and choose **Extract All**. If you use Git, you can clone it instead: `git clone https://github.com/pdmoura/claude-desktop-side-by-side.git`
 
    Read the scripts before you run them, as you should with any script from the internet. [`claude-profile.ps1`](claude-profile.ps1) is the installer. [`claude-handoff.ps1`](claude-handoff.ps1) and the [`skills`](skills/handoff/SKILL.md) folder add [`/handoff`](#handoff).
-2. **Open PowerShell in that folder.** Open the extracted folder in File Explorer, click the address bar at the top, type `powershell` and press **Enter**. A PowerShell window opens, already in the right folder.
-3. **Run the installer.** Copy this line, paste it into the PowerShell window (right-click pastes) and press **Enter**:
+2. **Open PowerShell in that folder.** Open the extracted folder in File Explorer. If all you see is another folder with the same name, open that one too: you're in the right place when you see `claude-profile.ps1`. Then click the address bar at the top, type `powershell` and press **Enter**. A PowerShell window opens, already in the right folder.
+3. **Run the installer.** Copy this line, paste it into the PowerShell window (**Ctrl+V** or right-click) and press **Enter**:
 
    ```powershell
    powershell -ExecutionPolicy Bypass -File .\claude-profile.ps1 -Install -Name Work -Color blue
    ```
 
-   - `-Name`: a name for this account. Letters, numbers, `-` and `_` only (e.g. `Work`, `AcmeCorp`, `Personal`).
-   - `-Color`: the icon color. See [Colors](#colors).
-   - **Optional, only if you use Claude Code in a terminal:** add `-Cli` at the end. It also creates a `claude-work` command that opens Claude Code in the terminal with this account. It needs [Claude Code](https://docs.claude.com/en/docs/claude-code) installed (the `claude` command), and asks you to log in the first time.
+<a id="install-options"></a>
+#### Options
 
-   This creates a **Claude (Work)** shortcut on your desktop and in the Start menu. It also copies the scripts to `%LOCALAPPDATA%\ClaudeProfiles\` and sets up [`/handoff`](#handoff) for every account. Everything is installed for your Windows user, not inside the downloaded folder, so you can delete that folder afterwards: the shortcuts keep working and `/handoff` works in every project.
+These go at the end of the install line, whichever way you install. In the quick install, keep them inside the closing `"`.
 
-4. Repeat step 3 with another name for each extra account.
-5. Open **Claude (Work)** and sign in: click **Continue with email**, enter your email, then **type the code** you receive by email into the app. Don't click the link in the email, and don't use Google ([why](#sign-in-important)).
+- `-Name`: a name for this account. Letters, numbers, `-` and `_` only (e.g. `Work`, `AcmeCorp`, `Personal`).
+- `-Color`: the icon color. See [Colors](#colors).
+- **Optional, only if you use Claude Code in a terminal:** add `-Cli` after the color. It also creates a `claude-work` command that opens Claude Code in the terminal with this account. It needs [Claude Code](https://docs.claude.com/en/docs/claude-code) installed (the `claude` command), and asks you to log in the first time.
+
+#### What you should see
+
+When it finishes, the window shows `Profile 'Work' installed.` and a **Claude (Work)** shortcut appears on your desktop and in the Start menu. If you get an error message instead, [open an issue](../../issues) and paste the message there.
+
+The installer also copies the scripts to `%LOCALAPPDATA%\ClaudeProfiles\` and sets up [`/handoff`](#handoff) for every account. Everything is installed for your Windows user, not inside the downloaded folder, so you can delete that folder afterwards: the shortcuts keep working and `/handoff` works in every project.
+
+#### Next steps
+
+1. **Sign in.** Open **Claude (Work)**, click **Continue with email**, enter your email, then **type the code** you receive by email into the app. Don't click the link in the email, and don't use Google ([why](#sign-in-important)).
+2. **Add more accounts.** Run the install line again with another name and color for each extra account.
 
 ### Everyday use
 
