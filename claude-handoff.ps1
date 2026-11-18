@@ -20,11 +20,12 @@
   the conversation was continued in two places: the script stops and asks which one to keep with
   -Prefer. The other copy is first saved next to it as <id>.jsonl.diverged-<date>.
 
-  SSH chats (-Ssh) are different: the conversation stays on the remote machine, and the app keeps
-  only a sidebar entry that says where it is. The app has one sidebar list per organization, so a
-  second organization under the same email (a personal plan and a team plan, say) doesn't show them.
-  -Ssh adds every SSH chat of the account to the lists of all its organizations. Nothing is copied
-  to or from the remote machine.
+  Organizations (-Orgs) are a different job. The app has one sidebar list per organization, so a
+  second organization under the same email (a personal plan and a team plan, say) doesn't show the
+  chats of the first. The conversations themselves don't depend on the organization: a local chat is
+  in .claude\projects, and an SSH chat stays on the remote machine. So -Orgs only adds sidebar
+  entries: every chat of the account to the lists of all its organizations. No conversation is
+  copied anywhere. -Ssh does the same for SSH chats only, and -Session picks one chat.
 
   It never deletes or archives anything. If the app's files don't look the way this script expects
   (an update changed them), it stops before writing anything.
@@ -50,9 +51,13 @@
 .EXAMPLE
   claude-handoff -To Fullpond -DryRun         # show what would happen
 .EXAMPLE
-  claude-handoff -Ssh                         # show this account's SSH chats in all its organizations
+  claude-handoff -Orgs                        # show this account's chats in all its organizations
 .EXAMPLE
-  claude-handoff -Ssh -To Fullpond            # the same, for another account
+  claude-handoff -Orgs -Session this          # inside Claude: only this conversation (or -Session <id>)
+.EXAMPLE
+  claude-handoff -Ssh                         # only the SSH chats
+.EXAMPLE
+  claude-handoff -Orgs -To Fullpond           # the same, for another account
 .EXAMPLE
   claude-handoff -Install                     # add the /handoff skill to every account, and this command
 #>
@@ -62,6 +67,7 @@ param(
   [string]$Path = (Get-Location).ProviderPath,
   [string]$Prefer,
   [switch]$List,
+  [switch]$Orgs,
   [switch]$Ssh,
   [switch]$Install,
   [switch]$DryRun
@@ -196,11 +202,13 @@ function Resolve-Account([string]$name) {
   $null
 }
 
-# --- SSH chats: list them in every organization of one account ------------------------------------------
-# The conversation of an SSH chat stays on the remote machine. The app keeps a sidebar entry that says
-# where it is (host, folder, file), in a list per organization. So this only adds entries: one for each
-# SSH chat that an organization's list lacks. It never changes or removes an existing entry, and it
-# respects chats that were deleted from a list.
+# --- Organizations: list an account's chats in every one of its organizations ---------------------------
+# The app keeps one sidebar list per organization, so a second organization under the same email (a
+# personal plan and a team plan, say) doesn't show the chats of the first. A local chat's conversation is
+# in .claude\projects whichever organization is signed in, and an SSH chat's stays on the remote machine
+# (its entry says where: host, folder, file). So nothing has to be copied: this only adds sidebar entries,
+# one for each chat that an organization's list lacks. It never changes or removes an existing entry, and
+# it respects chats that were deleted from a list. -Orgs covers local and SSH chats, -Ssh only SSH ones.
 
 # Returns $json without the given members of its top-level object; everything else stays byte for byte.
 function Get-JsonWithout([string]$json, [string[]]$keys) {
@@ -241,15 +249,18 @@ function Get-JsonWithout([string]$json, [string[]]$keys) {
   $sb.ToString()
 }
 
-if ($Ssh -or $To -ieq 'ssh') {
-  $named = $To -and $To -ine 'ssh'
+$orgsMode = $Orgs -or $To -ieq 'orgs'
+$sshMode = -not $orgsMode -and ($Ssh -or $To -ieq 'ssh')
+if ($orgsMode -or $sshMode) {
+  $what = if ($sshMode) { 'SSH chat' } else { 'chat' }
+  $named = $To -and @('ssh', 'orgs') -inotcontains $To
   $account = $null
   if ($named) { $account = Resolve-Account $To }
   elseif ($currentAccount) { $account = $currentAccount }
   else { $account = ($windows | Where-Object { $_.Name -eq 'Desktop' } | Select-Object -First 1).LastAccount }
   if (-not $account) {
     if ($named) { throw "Unknown account '$To'. Run with -List to see the names you can use." }
-    throw "Couldn't tell which account to use. Name it, e.g. -Ssh -To Desktop (see -List)."
+    throw "Couldn't tell which account to use. Name it, e.g. -Orgs -To Desktop (see -List)."
   }
 
   # Every organization list of that account, in every window
@@ -261,30 +272,55 @@ if ($Ssh -or $To -ieq 'ssh') {
     }
   })
 
-  # The SSH chats in those lists; when a chat is in several, the entry used most recently is the one copied
-  $chats = @{}; $unread = 0; $sshSeen = 0
+  # The chats in those lists; when a chat is in several, the entry used most recently is the one copied.
+  # A local chat counts only if its conversation file is in .claude\projects. WSL chats are left alone.
+  $chats = @{}; $unread = 0; $seen = 0; $noFile = @{}
   foreach ($l in $lists) {
     foreach ($f in @(Get-ChildItem -LiteralPath $l.Dir -File -Filter 'local_*.json' -ErrorAction SilentlyContinue)) {
       $o = Read-Json $f.FullName
       if (-not $o) { $unread++; continue }
       $id = Get-Prop $o 'cliSessionId'
       if ($id) { $l.Has[$id] = $true }
-      if (-not (Get-Prop $o 'sshConfig')) { continue }
-      $sshSeen++
-      if (-not $id -or -not (Get-Prop $o 'sessionId') -or -not (Get-Prop $o 'cwd') -or -not (Get-Prop (Get-Prop $o 'sshConfig') 'sshHost')) { continue }
+      $isSsh = [bool](Get-Prop $o 'sshConfig')
+      if (-not $isSsh -and ($sshMode -or (Get-Prop $o 'wslConfig'))) { continue }
+      $seen++
+      if (-not $id -or -not (Get-Prop $o 'sessionId') -or -not (Get-Prop $o 'cwd')) { continue }
+      if ($isSsh) {
+        if (-not (Get-Prop (Get-Prop $o 'sshConfig') 'sshHost')) { continue }
+      } else {
+        $found = $false
+        foreach ($p in @(@((Get-Prop $o 'cwd'), (Get-Prop $o 'originCwd')) | Where-Object { $_ })) {
+          try { if (Test-Path -LiteralPath (Join-Path $SharedRoot "projects\$(Get-ProjectKey $p)\$id.jsonl")) { $found = $true; break } } catch {}
+        }
+        if (-not $found) { $noFile[$id] = $true; continue }
+      }
       $when = [double](Get-Prop $o 'lastActivityAt')
       if (-not $chats.ContainsKey($id) -or $when -gt $chats[$id].When) {
-        $chats[$id] = [pscustomobject]@{ Id = $id; File = $f; Data = $o; When = $when }
+        $chats[$id] = [pscustomobject]@{ Id = $id; File = $f; Data = $o; When = $when; Ssh = $isSsh }
       }
     }
   }
+  if ($seen -and -not $chats.Count -and -not $noFile.Count) { throw "The app's sidebar entries don't look the way this script expects (an update may have changed them). Nothing was written." }
+
+  # One chat only: -Session <id>, or -Session this inside a Claude session
+  if ($Session) {
+    $want = if ($Session -ieq 'this') { $env:CLAUDE_CODE_SESSION_ID } else { $Session }
+    if (-not $want) { throw "'-Session this' works inside a Claude session. Give the conversation's id instead." }
+    $hits = @($chats.Keys | Where-Object { $_ -like "$want*" })
+    if ($hits.Count -gt 1) { throw "'$Session' matches more than one chat; give more of the id." }
+    if (-not $hits) { throw "No $what '$Session' found in this account's sidebar lists." }
+    $chats = @{ $hits[0] = $chats[$hits[0]] }
+  }
 
   Write-Host ''
-  Write-Host "SSH chats of $(Get-AccountName $account)" -ForegroundColor Cyan
-  if ($sshSeen -and -not $chats.Count) { throw "The app's SSH sidebar entries don't look the way this script expects (an update may have changed them). Nothing was written." }
-  if (-not $chats.Count) { Write-Host '  No SSH chats found in this account.'; exit 0 }
-  $hosts = @($chats.Values | ForEach-Object { $_.Data.sshConfig.sshHost } | Sort-Object -Unique)
-  Write-Host "  $($chats.Count) chat(s), on $($hosts -join ', ')" -ForegroundColor DarkGray
+  Write-Host "$($what.Substring(0, 1).ToUpper() + $what.Substring(1))s of $(Get-AccountName $account)" -ForegroundColor Cyan
+  if (-not $chats.Count) { Write-Host "  No ${what}s found in this account."; exit 0 }
+  $sshChats = @($chats.Values | Where-Object { $_.Ssh })
+  $hosts = @($sshChats | ForEach-Object { $_.Data.sshConfig.sshHost } | Sort-Object -Unique)
+  if ($Session) { Write-Host "  $(Get-Prop (@($chats.Values)[0]).Data 'title')" -ForegroundColor DarkGray }
+  elseif ($sshMode) { Write-Host "  $($chats.Count) chat(s), on $($hosts -join ', ')" -ForegroundColor DarkGray }
+  else { Write-Host "  $($chats.Count - $sshChats.Count) on this computer$(if ($sshChats) { ", $($sshChats.Count) over SSH ($($hosts -join ', '))" })" -ForegroundColor DarkGray }
+  if ($noFile.Count -and -not $Session) { Write-Host "  ($($noFile.Count) left out: no conversation file on this computer)" -ForegroundColor DarkGray }
   if ($unread) { Write-Host "  ($unread sidebar entr$(if ($unread -eq 1) { 'y' } else { 'ies' }) couldn't be read and were skipped)" -ForegroundColor Yellow }
   Write-Host ''
   if ($lists.Count -lt 2) {
@@ -293,8 +329,9 @@ if ($Ssh -or $To -ieq 'ssh') {
     exit 0
   }
 
-  # Left out of a copy: the remote process and reconnect state the original entry holds, its organization's
-  # connectors, and where its window last showed it. The app fills these in again when the chat is opened.
+  # An SSH chat's entry is copied as it is, minus what belongs to the original: its remote process and
+  # reconnect state, its organization's connectors, and where its window last showed it. The app fills
+  # these in again when the chat is opened. A local chat gets the same small entry a handoff writes.
   $ownState = @('sshRemoteProcessId', 'sshReattach', 'remoteMcpServersConfig', 'chromeTabGroupId', 'lastFocusedAt')
   $addedAny = $false
   foreach ($l in $lists) {
@@ -303,14 +340,32 @@ if ($Ssh -or $To -ieq 'ssh') {
       if ($l.Has.ContainsKey($chat.Id)) { continue }
       $name = $chat.File.Name                                       # local_<entry id>.json
       $entryId = $name.Substring(6, $name.Length - 11)
-      if (Test-Path -LiteralPath (Join-Path $l.Dir "deleted_$entryId")) { $deleted++; continue }
-      $dest = Join-Path $l.Dir $name
+      if ((Test-Path -LiteralPath (Join-Path $l.Dir "deleted_$entryId")) -or (Test-Path -LiteralPath (Join-Path $l.Dir "deleted_$($chat.Id)"))) { $deleted++; continue }
+      $dest = Join-Path $l.Dir $(if ($chat.Ssh) { $name } else { "local_$($chat.Id).json" })
       if (Test-Path -LiteralPath $dest) { continue }
       if (-not $DryRun) {
-        $text = Get-JsonWithout (Get-Content -LiteralPath $chat.File.FullName -Raw -Encoding UTF8) $ownState
-        $check = try { $text | ConvertFrom-Json } catch { $null }
-        if (-not $check -or (Get-Prop $check 'cliSessionId') -ne $chat.Id -or -not (Get-Prop $check 'sshConfig')) {
-          throw "Couldn't prepare a copy of '$(Get-Prop $chat.Data 'title')' (the entry looks different from what this script expects). Stopped before writing it."
+        $src = $chat.Data
+        if ($chat.Ssh) {
+          $text = Get-JsonWithout (Get-Content -LiteralPath $chat.File.FullName -Raw -Encoding UTF8) $ownState
+          $check = try { $text | ConvertFrom-Json } catch { $null }
+          if (-not $check -or (Get-Prop $check 'cliSessionId') -ne $chat.Id -or -not (Get-Prop $check 'sshConfig')) {
+            throw "Couldn't prepare a copy of '$(Get-Prop $src 'title')' (the entry looks different from what this script expects). Stopped before writing it."
+          }
+        } else {
+          $now = Get-NowMs
+          $cwd = Get-Prop $src 'cwd'; $origin = Get-Prop $src 'originCwd'; if (-not $origin) { $origin = $cwd }
+          $created = Get-Prop $src 'createdAt'; if (-not $created) { $created = $now }
+          $entry = [ordered]@{
+            sessionId = "local_$($chat.Id)"; cliSessionId = $chat.Id; cwd = $cwd; originCwd = $origin
+            createdAt = [long]$created; lastActivityAt = $(if ($chat.When) { [long]$chat.When } else { $now }); indexedAt = $now
+          }
+          if (Get-Prop $src 'model') { $entry.model = $src.model }
+          $entry.isArchived = [bool](Get-Prop $src 'isArchived')
+          $entry.title = $(if (Get-Prop $src 'title') { $src.title } else { 'Conversation' })
+          $entry.titleSource = $(if (Get-Prop $src 'titleSource') { $src.titleSource } else { 'auto' })
+          $entry.permissionMode = 'default'; $entry.alwaysAllowedReasons = @(); $entry.sessionPermissionUpdates = @()
+          $entry.adoptedFromOtherSurface = $true; $entry.fromCliTranscript = $true
+          $text = $entry | ConvertTo-Json -Depth 5
         }
         Write-Utf8 $dest $text
       }
@@ -320,15 +375,15 @@ if ($Ssh -or $To -ieq 'ssh') {
     $line = "  $($l.Label):"
     $note = if ($deleted) { ", $deleted left out because you deleted $(if ($deleted -eq 1) { 'it' } else { 'them' }) there" } else { '' }
     if ($added) { Write-Host "$line $(if ($DryRun) { '[dry run] would add' } else { 'added' }) $added$note" -ForegroundColor Green }
-    else { Write-Host "$line already has them all$note" }
+    else { Write-Host "$line already has $(if ($chats.Count -eq 1) { 'it' } else { 'them all' })$note" }
   }
   Write-Host ''
   if ($DryRun) { Write-Host 'Dry run: nothing was written.' -ForegroundColor Yellow; exit 0 }
-  if (-not $addedAny) { Write-Host 'Nothing to add: every organization already lists every SSH chat.' -ForegroundColor Green; exit 0 }
+  if (-not $addedAny) { Write-Host "Nothing to add: every organization already lists $(if ($chats.Count -eq 1) { 'it' } else { "every $what" })." -ForegroundColor Green; exit 0 }
   Write-Host 'Next:' -ForegroundColor Green
-  Write-Host '  1. Switch to the other organization in the Claude app. The SSH chats are in the Code tab sidebar.'
+  Write-Host "  1. Switch to the other organization in the Claude app. The ${what}s are in the Code tab sidebar."
   Write-Host "  2. If they aren't there, quit Claude completely (system tray icon > Quit) and open it again."
-  Write-Host '  Use a chat in one organization at a time. Run this again after starting new SSH chats.' -ForegroundColor DarkGray
+  Write-Host "  Use a chat in one organization at a time. Run this again after starting new ${what}s." -ForegroundColor DarkGray
   exit 0
 }
 

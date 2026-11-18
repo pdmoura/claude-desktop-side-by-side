@@ -138,7 +138,9 @@ Para traerla de vuelta, escribe `/handoff Desktop` en **Claude (Trabajo)** (`Des
 | `/handoff Trabajo` | Lleva esta conversación a la cuenta Trabajo: su ventana y su comando `claude-trabajo` |
 | `/handoff Desktop` | La lleva a la cuenta de la ventana principal de Claude |
 | `/handoff refresh` | Deja la ventana y el comando de terminal de esta cuenta con la misma copia, para que puedas cambiar entre ellos |
-| `/handoff ssh` | Muestra las conversaciones por SSH de esta cuenta en la barra lateral de todas sus organizaciones, por ejemplo un plan personal y un plan de equipo con el mismo correo |
+| `/handoff orgs` | Muestra las conversaciones de esta cuenta en la barra lateral de todas sus organizaciones, por ejemplo un plan personal y un plan de equipo con el mismo correo |
+| `/handoff orgs this` | Lo mismo, solo para esta conversación |
+| `/handoff ssh` | Lo mismo, solo para las conversaciones por SSH |
 
 **Es bueno saber**
 
@@ -146,7 +148,7 @@ Para traerla de vuelta, escribe `/handoff Desktop` en **Claude (Trabajo)** (`Des
 - **Archiva, no borres.** Para quitar de una cuenta una conversación que llevaste a otra, archívala. Borrarla puede borrarla también en las otras cuentas.
 - **"Siguió en más de un lugar":** significa que se enviaron mensajes en dos cuentas sin un handoff de por medio. No se cambia nada. Claude muestra qué copias tienen mensajes que las otras no tienen y pregunta cuál conservar. Las demás se guardan como archivos de respaldo (`.diverged`), nunca se borran.
 - **Las cuentas nuevas** reciben `/handoff` automáticamente la próxima vez que instales un perfil.
-- **Conversaciones por SSH y una segunda organización.** Una conversación que se ejecuta en otra máquina por SSH se queda en esa máquina, y Claude Desktop guarda una lista separada en la barra lateral para cada organización. Por eso, si el mismo correo tiene dos organizaciones (un plan personal y un plan de equipo, por ejemplo), las conversaciones por SSH iniciadas en una no aparecen en la otra. Ejecuta `/handoff ssh`: añade todas las conversaciones por SSH a la barra lateral de todas ellas. No se copia nada hacia la máquina remota ni desde ella. Usa cada conversación en una organización a la vez, y ejecútalo de nuevo después de empezar conversaciones por SSH nuevas.
+- **Dos organizaciones con el mismo correo.** Si tu correo tiene un plan personal y un plan de equipo, por ejemplo, Claude Desktop guarda una lista separada en la barra lateral para cada uno, así que las conversaciones iniciadas en uno no aparecen en el otro. Ejecuta `/handoff orgs`: añade todas las conversaciones a la barra lateral de todas las organizaciones (`/handoff orgs this` añade solo la conversación actual, `/handoff ssh` solo las conversaciones por SSH). No se copia nada: una conversación local es el mismo archivo en cualquier organización, y una conversación por SSH se queda en la máquina remota. Usa cada conversación en una organización a la vez, ejecútalo de nuevo después de empezar conversaciones nuevas, y recuerda que una conversación que continúas en la organización del equipo se procesa en esa organización. Archiva, no borres: borrar una conversación en una organización puede borrarla en las otras.
 - **Experimental, solo en Windows.** Depende de cómo Claude guarda las conversaciones hoy, algo que no está documentado. Si una actualización lo cambia, `/handoff` se detiene con un error en vez de cambiar nada.
 
 <details>
@@ -160,7 +162,9 @@ claude-handoff -To Trabajo                      # handoff de la conversación m�
 claude-handoff -To Trabajo -Session 12eb8934    # una conversación concreta (id de -List)
 claude-handoff -To Trabajo -Prefer Desktop      # siguió en dos lugares: conservar la copia de Desktop
 claude-handoff -To Trabajo -DryRun              # mostrar qué pasaría, sin cambiar nada
-claude-handoff -Ssh                             # mostrar las conversaciones por SSH de esta cuenta en todas sus organizaciones
+claude-handoff -Orgs                            # mostrar las conversaciones de esta cuenta en todas sus organizaciones
+claude-handoff -Orgs -Session 12eb8934          # solo una conversación
+claude-handoff -Ssh                             # solo las conversaciones por SSH
 claude-handoff -Install                         # añadir /handoff a todas las cuentas ahora
 ```
 

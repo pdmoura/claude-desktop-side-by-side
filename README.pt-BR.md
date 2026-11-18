@@ -138,7 +138,9 @@ Para trazer de volta, digite `/handoff Desktop` no **Claude (Trabalho)** (`Deskt
 | `/handoff Trabalho` | Leva esta conversa para a conta Trabalho: a janela dela e o comando `claude-trabalho` |
 | `/handoff Desktop` | Leva para a conta da janela principal do Claude |
 | `/handoff refresh` | Deixa a janela e o comando de terminal desta conta com a mesma cópia, para você poder alternar entre eles |
-| `/handoff ssh` | Mostra as conversas por SSH desta conta na barra lateral de todas as organizações dela, por exemplo um plano pessoal e um plano de equipe no mesmo e-mail |
+| `/handoff orgs` | Mostra as conversas desta conta na barra lateral de todas as organizações dela, por exemplo um plano pessoal e um plano de equipe no mesmo e-mail |
+| `/handoff orgs this` | A mesma coisa, só para esta conversa |
+| `/handoff ssh` | A mesma coisa, só para as conversas por SSH |
 
 **Bom saber**
 
@@ -146,7 +148,7 @@ Para trazer de volta, digite `/handoff Desktop` no **Claude (Trabalho)** (`Deskt
 - **Arquive, não apague.** Para tirar de uma conta uma conversa que você levou para outra, arquive. Apagar pode apagar a conversa também nas outras contas.
 - **"Continuou em mais de um lugar":** quer dizer que foram mandadas mensagens em duas contas sem um handoff no meio. Nada é alterado. O Claude mostra quais cópias têm mensagens que as outras não têm e pergunta qual manter. As outras são guardadas como arquivos de backup (`.diverged`), nunca apagadas.
 - **Contas novas** recebem o `/handoff` automaticamente na próxima vez que você instalar um perfil.
-- **Conversas por SSH e uma segunda organização.** Uma conversa que roda em outra máquina por SSH fica nessa máquina, e o Claude Desktop guarda uma lista separada na barra lateral para cada organização. Por isso, se o mesmo e-mail tem duas organizações (um plano pessoal e um plano de equipe, por exemplo), as conversas por SSH iniciadas em uma não aparecem na outra. Rode `/handoff ssh`: ele adiciona todas as conversas por SSH à barra lateral de todas elas. Nada é copiado para a máquina remota nem a partir dela. Use cada conversa em uma organização por vez, e rode de novo depois de começar novas conversas por SSH.
+- **Duas organizações no mesmo e-mail.** Se o seu e-mail tem um plano pessoal e um plano de equipe, por exemplo, o Claude Desktop guarda uma lista separada na barra lateral para cada um, então as conversas iniciadas em um não aparecem no outro. Rode `/handoff orgs`: ele adiciona todas as conversas à barra lateral de todas as organizações (`/handoff orgs this` adiciona só a conversa atual, `/handoff ssh` só as conversas por SSH). Nada é copiado: uma conversa local é o mesmo arquivo em qualquer organização, e uma conversa por SSH fica na máquina remota. Use cada conversa em uma organização por vez, rode de novo depois de começar novas conversas, e lembre que uma conversa continuada na organização da equipe é processada por essa organização. Arquive, não apague: apagar uma conversa em uma organização pode apagá-la nas outras.
 - **Experimental, só no Windows.** Depende de como o Claude guarda as conversas hoje, o que não é documentado. Se uma atualização mudar isso, o `/handoff` para com um erro em vez de alterar qualquer coisa.
 
 <details>
@@ -160,7 +162,9 @@ claude-handoff -To Trabalho                      # handoff da conversa mais rece
 claude-handoff -To Trabalho -Session 12eb8934    # uma conversa específica (id do -List)
 claude-handoff -To Trabalho -Prefer Desktop      # continuou em dois lugares: manter a cópia do Desktop
 claude-handoff -To Trabalho -DryRun              # mostrar o que aconteceria, sem mudar nada
-claude-handoff -Ssh                              # mostrar as conversas por SSH desta conta em todas as organizações dela
+claude-handoff -Orgs                             # mostrar as conversas desta conta em todas as organizações dela
+claude-handoff -Orgs -Session 12eb8934           # só uma conversa
+claude-handoff -Ssh                              # só as conversas por SSH
 claude-handoff -Install                          # adicionar o /handoff em todas as contas agora
 ```
 

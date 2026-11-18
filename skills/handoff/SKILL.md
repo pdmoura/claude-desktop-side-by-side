@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Hand the current Claude Code conversation to another Claude account, from the desktop app or any claude-<name> CLI, so it shows on that account's desktop sidebar and in its CLI /resume list with its full history, and back again; or, with "refresh", sync the current account's desktop and CLI copies; or, with "ssh", show the account's SSH chats in the sidebar of all its organizations. Use for "/handoff Fullpond", "/handoff refresh", "/handoff ssh", "move this conversation to my Cascade account", "hand this back to Pando", "continue this in the other account", "sync this with my CLI", "my SSH chats don't show in my team account".
+description: Hand the current Claude Code conversation to another Claude account, from the desktop app or any claude-<name> CLI, so it shows on that account's desktop sidebar and in its CLI /resume list with its full history, and back again; or, with "refresh", sync the current account's desktop and CLI copies; or, with "orgs", show the account's chats in the sidebar of all its organizations (same email, personal plan and team plan). Use for "/handoff Fullpond", "/handoff refresh", "/handoff orgs", "/handoff orgs this", "/handoff ssh", "move this conversation to my Cascade account", "hand this back to Pando", "continue this in the other account", "sync this with my CLI", "my chats don't show in my team account", "show this conversation in my team organization".
 ---
 
 # Hand this conversation to another account
@@ -38,14 +38,22 @@ account's desktop sidebar. It works in every direction.
    user which copies have messages the others lack and ask which one to keep. Then run the same command
    with `-Prefer <that copy>`; the other copies are saved as `.diverged` files first.
 
-5. **`ssh` is a different job.** SSH chats stay on the remote machine; the desktop app only lists them,
-   in a separate sidebar list per organization. So when the same email has two organizations (a personal
-   plan and a team plan, say), the SSH chats started in one don't show in the other. For `/handoff ssh`,
-   run the script with `-Ssh` in place of `-To <target>` (no `-Path` needed). It adds every SSH chat of
-   this account to the lists of all its organizations, in both directions, and never changes or removes
-   an entry. Tell the user what it added and its "Next" steps: switch organization in the app, and
-   restart the app if the chats aren't in the sidebar. This is for the desktop app only, and the user
-   should run it again after starting new SSH chats.
+5. **`orgs` is a different job.** The desktop app keeps a separate sidebar list per organization. So when
+   the same email has two organizations (a personal plan and a team plan, say), chats started in one
+   don't show in the other. Nothing needs copying: a local chat is the same file whichever organization is
+   signed in, and an SSH chat stays on the remote machine. Run the script in place of `-To <target>` (no
+   `-Path` needed) with:
+   - `-Orgs` for `/handoff orgs`: every chat of this account, local and SSH, into the lists of all its
+     organizations;
+   - `-Orgs -Session this` for `/handoff orgs this`: only this conversation;
+   - `-Ssh` for `/handoff ssh`: only the SSH chats.
+
+   It works in both directions and never changes or removes an entry. Tell the user what it added and
+   its "Next" steps: switch organization in the app, and restart the app if the chats aren't in the
+   sidebar. Also tell them: use a chat in one organization at a time; a chat continued in the team
+   organization is processed under that organization; archive rather than delete, because deleting a chat
+   in one organization can delete it for the others; and run it again after starting new chats. This is
+   for the desktop app only.
 
 6. **Don't improvise.** Don't delete, archive or rename anything, and don't copy conversation files or
    write sidebar entries by hand. If the script stops with an error (for example that the app's files look
