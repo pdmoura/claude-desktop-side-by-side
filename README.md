@@ -138,6 +138,7 @@ To bring it back, type `/handoff Desktop` in **Claude (Work)** (`Desktop` means 
 | `/handoff Work` | Moves this conversation to the Work account: its window and its `claude-work` command |
 | `/handoff Desktop` | Moves it to the account of your main Claude window |
 | `/handoff refresh` | Updates this account's window and its terminal command to the same copy, so you can switch between them |
+| `/handoff ssh` | Shows this account's SSH chats in the sidebar of all its organizations, for example a personal plan and a team plan under the same email |
 
 **Good to know**
 
@@ -145,6 +146,7 @@ To bring it back, type `/handoff Desktop` in **Claude (Work)** (`Desktop` means 
 - **Archive, don't delete.** To remove a moved conversation from one account, archive it there. Deleting it can also delete it for the other accounts.
 - **"Continued in more than one place":** this means messages were sent in two accounts without a handoff in between. Nothing is changed. Claude shows which copies have messages the others don't and asks which one to keep. The others are saved as backup files (`.diverged`), never deleted.
 - **New accounts** get `/handoff` automatically the next time you install a profile.
+- **SSH chats and a second organization.** A chat that runs on another machine over SSH stays on that machine, and Claude Desktop keeps a separate sidebar list for each organization. So if the same email has two organizations (a personal plan and a team plan, say), SSH chats started in one don't show in the other. Run `/handoff ssh`: it adds every SSH chat to the sidebar of all of them. Nothing is copied to or from the remote machine. Use a chat in one organization at a time, and run it again after you start new SSH chats.
 - **Experimental, Windows only.** It depends on how Claude stores conversations today, which isn't documented. If an update changes that, `/handoff` stops with an error instead of changing anything.
 
 <details>
@@ -158,6 +160,7 @@ claude-handoff -To Work                      # hand off the newest conversation 
 claude-handoff -To Work -Session 12eb8934    # a specific conversation (id from -List)
 claude-handoff -To Work -Prefer Desktop      # continued in two places: keep the Desktop copy
 claude-handoff -To Work -DryRun              # show what would happen, change nothing
+claude-handoff -Ssh                          # show this account's SSH chats in all its organizations
 claude-handoff -Install                      # add /handoff to every account now
 ```
 

@@ -20,6 +20,12 @@
   the conversation was continued in two places: the script stops and asks which one to keep with
   -Prefer. The other copy is first saved next to it as <id>.jsonl.diverged-<date>.
 
+  SSH chats (-Ssh) are different: the conversation stays on the remote machine, and the app keeps
+  only a sidebar entry that says where it is. The app has one sidebar list per organization, so a
+  second organization under the same email (a personal plan and a team plan, say) doesn't show them.
+  -Ssh adds every SSH chat of the account to the lists of all its organizations. Nothing is copied
+  to or from the remote machine.
+
   It never deletes or archives anything. If the app's files don't look the way this script expects
   (an update changed them), it stops before writing anything.
 
@@ -44,6 +50,10 @@
 .EXAMPLE
   claude-handoff -To Fullpond -DryRun         # show what would happen
 .EXAMPLE
+  claude-handoff -Ssh                         # show this account's SSH chats in all its organizations
+.EXAMPLE
+  claude-handoff -Ssh -To Fullpond            # the same, for another account
+.EXAMPLE
   claude-handoff -Install                     # add the /handoff skill to every account, and this command
 #>
 param(
@@ -52,6 +62,7 @@ param(
   [string]$Path = (Get-Location).ProviderPath,
   [string]$Prefer,
   [switch]$List,
+  [switch]$Ssh,
   [switch]$Install,
   [switch]$DryRun
 )
@@ -90,6 +101,7 @@ $accounts = @(Get-ChildItem -LiteralPath $UserHome -Directory -Force -ErrorActio
     [pscustomobject]@{
       Label = $label; Root = $_.FullName; Shared = $shared; Command = if ($shared) { 'claude' } else { 'claude-' + $label.ToLower() }
       AccountId = Get-Prop $acc 'accountUuid'; OrgId = Get-Prop $acc 'organizationUuid'; Email = Get-Prop $acc 'emailAddress'
+      OrgName = Get-Prop $acc 'organizationName'
     }
   })
 if (-not ($accounts | Where-Object { $_.Shared })) { throw "$SharedRoot was not found. Is Claude Code installed?" }
@@ -164,6 +176,160 @@ foreach ($c in $candidates) {
     LastAccount = Get-Prop (Read-Json (Join-Path $c.Dir 'config.json')) 'lastKnownAccountUuid'
     Title = if ($c.Name -eq 'Desktop') { 'Claude' } else { "Claude ($($c.Name))" }
   }
+}
+
+# --- The account this runs in (inside a Claude session), and looking an account up by name ------------
+# Desktop sessions say which account they use; CLI sessions started with claude-<name> have CLAUDE_CONFIG_DIR.
+$currentAccount = $null
+if ($env:CLAUDE_CODE_ACCOUNT_UUID) { $currentAccount = $env:CLAUDE_CODE_ACCOUNT_UUID }
+elseif ($env:CLAUDE_CONFIG_DIR) {
+  $cfgDir = [IO.Path]::GetFullPath($env:CLAUDE_CONFIG_DIR).TrimEnd('\')
+  $currentAccount = ($accounts | Where-Object { $_.Root.TrimEnd('\') -ieq $cfgDir } | Select-Object -First 1).AccountId
+} elseif ($env:CLAUDE_CODE_SESSION_ID) {
+  $currentAccount = ($accounts | Where-Object { $_.Shared } | Select-Object -First 1).AccountId
+}
+function Resolve-Account([string]$name) {
+  $w = $windows | Where-Object { $_.Name -ieq $name } | Select-Object -First 1
+  if ($w -and $w.LastAccount) { return $w.LastAccount }
+  $a = $accounts | Where-Object { $_.Label -ieq $name -or $_.Command -ieq $name -or $_.Email -ieq $name -or (Split-Path $_.Root -Leaf) -ieq $name } | Select-Object -First 1
+  if ($a) { return $a.AccountId }
+  $null
+}
+
+# --- SSH chats: list them in every organization of one account ------------------------------------------
+# The conversation of an SSH chat stays on the remote machine. The app keeps a sidebar entry that says
+# where it is (host, folder, file), in a list per organization. So this only adds entries: one for each
+# SSH chat that an organization's list lacks. It never changes or removes an existing entry, and it
+# respects chats that were deleted from a list.
+
+# Returns $json without the given members of its top-level object; everything else stays byte for byte.
+function Get-JsonWithout([string]$json, [string[]]$keys) {
+  $sb = New-Object Text.StringBuilder
+  $n = $json.Length; $i = 0; $depth = 0; $keep = 0
+  while ($i -lt $n) {
+    $ch = $json[$i]
+    if ($ch -eq '"') {
+      $start = $i; $i++
+      while ($i -lt $n -and $json[$i] -ne '"') { if ($json[$i] -eq '\') { $i++ }; $i++ }
+      $i++
+      if ($depth -ne 1) { continue }
+      $j = $i; while ($j -lt $n -and [char]::IsWhiteSpace($json[$j])) { $j++ }
+      if ($j -ge $n -or $json[$j] -ne ':') { continue }                      # a value, not a member name
+      if ($keys -cnotcontains $json.Substring($start + 1, $i - $start - 2)) { continue }
+      $j++; $d = 0                                                           # skip this member's value
+      while ($j -lt $n) {
+        $c = $json[$j]
+        if ($c -eq '"') { $j++; while ($j -lt $n -and $json[$j] -ne '"') { if ($json[$j] -eq '\') { $j++ }; $j++ } }
+        elseif ($c -eq '{' -or $c -eq '[') { $d++ }
+        elseif ($c -eq '}' -or $c -eq ']') { if ($d -eq 0) { break }; $d-- }
+        elseif ($c -eq ',' -and $d -eq 0) { break }
+        $j++
+      }
+      [void]$sb.Append($json, $keep, $start - $keep)
+      if ($j -lt $n -and $json[$j] -eq ',') { $j++ }
+      else {                                                                 # it was the last member: drop the comma before it
+        $k = $sb.Length - 1; while ($k -ge 0 -and [char]::IsWhiteSpace($sb.Chars($k))) { $k-- }
+        if ($k -ge 0 -and $sb.Chars($k) -eq ',') { $sb.Length = $k }
+      }
+      $keep = $j; $i = $j
+      continue
+    }
+    if ($ch -eq '{' -or $ch -eq '[') { $depth++ } elseif ($ch -eq '}' -or $ch -eq ']') { $depth-- }
+    $i++
+  }
+  [void]$sb.Append($json, $keep, $n - $keep)
+  $sb.ToString()
+}
+
+if ($Ssh -or $To -ieq 'ssh') {
+  $named = $To -and $To -ine 'ssh'
+  $account = $null
+  if ($named) { $account = Resolve-Account $To }
+  elseif ($currentAccount) { $account = $currentAccount }
+  else { $account = ($windows | Where-Object { $_.Name -eq 'Desktop' } | Select-Object -First 1).LastAccount }
+  if (-not $account) {
+    if ($named) { throw "Unknown account '$To'. Run with -List to see the names you can use." }
+    throw "Couldn't tell which account to use. Name it, e.g. -Ssh -To Desktop (see -List)."
+  }
+
+  # Every organization list of that account, in every window
+  $lists = @(foreach ($win in $windows) {
+    foreach ($d in @(Get-ChildItem -LiteralPath (Join-Path $win.Sessions $account) -Directory -ErrorAction SilentlyContinue)) {
+      $orgName = ($accounts | Where-Object { $_.OrgId -eq $d.Name -and $_.OrgName } | Select-Object -First 1).OrgName
+      [pscustomobject]@{ Window = $win; Org = $d.Name; Dir = $d.FullName; Has = @{}
+                         Label = "$($win.Title), organization $($d.Name.Substring(0, 8))$(if ($orgName) { " ($orgName)" })" }
+    }
+  })
+
+  # The SSH chats in those lists; when a chat is in several, the entry used most recently is the one copied
+  $chats = @{}; $unread = 0; $sshSeen = 0
+  foreach ($l in $lists) {
+    foreach ($f in @(Get-ChildItem -LiteralPath $l.Dir -File -Filter 'local_*.json' -ErrorAction SilentlyContinue)) {
+      $o = Read-Json $f.FullName
+      if (-not $o) { $unread++; continue }
+      $id = Get-Prop $o 'cliSessionId'
+      if ($id) { $l.Has[$id] = $true }
+      if (-not (Get-Prop $o 'sshConfig')) { continue }
+      $sshSeen++
+      if (-not $id -or -not (Get-Prop $o 'sessionId') -or -not (Get-Prop $o 'cwd') -or -not (Get-Prop (Get-Prop $o 'sshConfig') 'sshHost')) { continue }
+      $when = [double](Get-Prop $o 'lastActivityAt')
+      if (-not $chats.ContainsKey($id) -or $when -gt $chats[$id].When) {
+        $chats[$id] = [pscustomobject]@{ Id = $id; File = $f; Data = $o; When = $when }
+      }
+    }
+  }
+
+  Write-Host ''
+  Write-Host "SSH chats of $(Get-AccountName $account)" -ForegroundColor Cyan
+  if ($sshSeen -and -not $chats.Count) { throw "The app's SSH sidebar entries don't look the way this script expects (an update may have changed them). Nothing was written." }
+  if (-not $chats.Count) { Write-Host '  No SSH chats found in this account.'; exit 0 }
+  $hosts = @($chats.Values | ForEach-Object { $_.Data.sshConfig.sshHost } | Sort-Object -Unique)
+  Write-Host "  $($chats.Count) chat(s), on $($hosts -join ', ')" -ForegroundColor DarkGray
+  if ($unread) { Write-Host "  ($unread sidebar entr$(if ($unread -eq 1) { 'y' } else { 'ies' }) couldn't be read and were skipped)" -ForegroundColor Yellow }
+  Write-Host ''
+  if ($lists.Count -lt 2) {
+    Write-Host '  This account has only one organization on this computer, so there is nowhere else to list them.'
+    Write-Host '  Switch to the other organization in the Claude app once, then run this again.'
+    exit 0
+  }
+
+  # Left out of a copy: the remote process and reconnect state the original entry holds, its organization's
+  # connectors, and where its window last showed it. The app fills these in again when the chat is opened.
+  $ownState = @('sshRemoteProcessId', 'sshReattach', 'remoteMcpServersConfig', 'chromeTabGroupId', 'lastFocusedAt')
+  $addedAny = $false
+  foreach ($l in $lists) {
+    $added = 0; $deleted = 0
+    foreach ($chat in @($chats.Values | Sort-Object When)) {
+      if ($l.Has.ContainsKey($chat.Id)) { continue }
+      $name = $chat.File.Name                                       # local_<entry id>.json
+      $entryId = $name.Substring(6, $name.Length - 11)
+      if (Test-Path -LiteralPath (Join-Path $l.Dir "deleted_$entryId")) { $deleted++; continue }
+      $dest = Join-Path $l.Dir $name
+      if (Test-Path -LiteralPath $dest) { continue }
+      if (-not $DryRun) {
+        $text = Get-JsonWithout (Get-Content -LiteralPath $chat.File.FullName -Raw -Encoding UTF8) $ownState
+        $check = try { $text | ConvertFrom-Json } catch { $null }
+        if (-not $check -or (Get-Prop $check 'cliSessionId') -ne $chat.Id -or -not (Get-Prop $check 'sshConfig')) {
+          throw "Couldn't prepare a copy of '$(Get-Prop $chat.Data 'title')' (the entry looks different from what this script expects). Stopped before writing it."
+        }
+        Write-Utf8 $dest $text
+      }
+      $added++
+    }
+    $addedAny = $addedAny -or $added
+    $line = "  $($l.Label):"
+    $note = if ($deleted) { ", $deleted left out because you deleted $(if ($deleted -eq 1) { 'it' } else { 'them' }) there" } else { '' }
+    if ($added) { Write-Host "$line $(if ($DryRun) { '[dry run] would add' } else { 'added' }) $added$note" -ForegroundColor Green }
+    else { Write-Host "$line already has them all$note" }
+  }
+  Write-Host ''
+  if ($DryRun) { Write-Host 'Dry run: nothing was written.' -ForegroundColor Yellow; exit 0 }
+  if (-not $addedAny) { Write-Host 'Nothing to add: every organization already lists every SSH chat.' -ForegroundColor Green; exit 0 }
+  Write-Host 'Next:' -ForegroundColor Green
+  Write-Host '  1. Switch to the other organization in the Claude app. The SSH chats are in the Code tab sidebar.'
+  Write-Host "  2. If they aren't there, quit Claude completely (system tray icon > Quit) and open it again."
+  Write-Host '  Use a chat in one organization at a time. Run this again after starting new SSH chats.' -ForegroundColor DarkGray
+  exit 0
 }
 
 # --- Reading a conversation file -----------------------------------------------------------------------
@@ -249,16 +415,7 @@ if ($List) {
 }
 if (-not $To) { throw 'Say which account to hand the conversation to, e.g. -To Fullpond (see -List).' }
 
-# --- The account this runs in (inside a Claude session), and the target account -----------------------
-# Desktop sessions say which account they use; CLI sessions started with claude-<name> have CLAUDE_CONFIG_DIR.
-$currentAccount = $null
-if ($env:CLAUDE_CODE_ACCOUNT_UUID) { $currentAccount = $env:CLAUDE_CODE_ACCOUNT_UUID }
-elseif ($env:CLAUDE_CONFIG_DIR) {
-  $cfgDir = [IO.Path]::GetFullPath($env:CLAUDE_CONFIG_DIR).TrimEnd('\')
-  $currentAccount = ($accounts | Where-Object { $_.Root.TrimEnd('\') -ieq $cfgDir } | Select-Object -First 1).AccountId
-} elseif ($env:CLAUDE_CODE_SESSION_ID) {
-  $currentAccount = ($accounts | Where-Object { $_.Shared } | Select-Object -First 1).AccountId
-}
+# --- The target account -------------------------------------------------------------------------------
 $refresh = $To -in @('refresh', 'sync')
 
 $targetAccount = $null
@@ -266,12 +423,7 @@ if ($refresh) {
   if (-not $currentAccount) { throw "Couldn't tell which account this is (refresh works inside a Claude session). Use -To <account> instead." }
   $targetAccount = $currentAccount
 }
-$w = $windows | Where-Object { $_.Name -ieq $To } | Select-Object -First 1
-if (-not $targetAccount -and $w) { $targetAccount = $w.LastAccount }
-if (-not $targetAccount) {
-  $a = $accounts | Where-Object { $_.Label -ieq $To -or $_.Command -ieq $To -or $_.Email -ieq $To -or (Split-Path $_.Root -Leaf) -ieq $To } | Select-Object -First 1
-  if ($a) { $targetAccount = $a.AccountId }
-}
+if (-not $targetAccount) { $targetAccount = Resolve-Account $To }
 if (-not $targetAccount) { throw "Unknown account '$To'. Run with -List to see the names you can use." }
 
 $targetOrg = ($accounts | Where-Object { $_.AccountId -eq $targetAccount -and $_.OrgId } | Select-Object -First 1).OrgId
