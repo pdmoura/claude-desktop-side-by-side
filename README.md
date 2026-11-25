@@ -96,7 +96,8 @@ The installer also copies the scripts to `%LOCALAPPDATA%\ClaudeProfiles\` and se
 
 - Open each account from its shortcut. The main app and all profiles can run at the same time.
 - **Taskbar:** a few seconds after opening, the profile's taskbar button switches to its color and separates from the main Claude button.
-- **Pin it:** right-click the *colored taskbar button* of the running profile and choose **Pin to taskbar**. The pin keeps the color and opens that profile.
+- **Pin it:** open the **Start** menu, right-click **Claude (Work)** and choose **Pin to taskbar** (or drag the desktop shortcut onto the taskbar). The pin keeps the color and opens that profile. While the profile is open, its window has its own colored button next to the pin. Don't pin the running window's button itself: that pin would not open the profile.
+- **Pinned with an earlier version?** Unpin it and pin it again from the Start menu as above.
 - If a profile window was opened some other way (not via its shortcut or pin), it may show the default icon. Open it from the shortcut again to fix it.
 
 ### Other commands
