@@ -63,7 +63,7 @@ if ($Name) {
   $ProfileDir = Join-Path $Root $Name                        # icon lives here
   $IconPath   = Join-Path $ProfileDir 'icon.ico'
   $DataDir    = Join-Path $env:APPDATA $ProfileId
-  $AppId      = "ClaudeProfiles.$Name"                       # taskbar identity
+  $AppId      = "ClaudeProfiles.$Name.Window"                # taskbar identity (no shortcut may carry it, see BrandWindows)
   $LinkName   = "Claude ($Name).lnk"
   $Links      = @(
     (Join-Path ([Environment]::GetFolderPath('Desktop')) $LinkName),
@@ -246,7 +246,7 @@ public static class ClaudeProfilesNative {
     PropVariantClear(ref v);
   }
 
-  public static int BrandWindows(uint[] pids, string appId, string icon, string relaunchCmd, string displayName) {
+  public static int BrandWindows(uint[] pids, string appId, string icon) {
     var set = new HashSet<uint>(pids);
     var wins = new List<IntPtr>();
     EnumWindows((h, l) => {
@@ -260,9 +260,10 @@ public static class ClaudeProfilesNative {
       Guid iid = typeof(IPropertyStore).GUID;
       IPropertyStore ps;
       if (SHGetPropertyStoreForWindow(h, ref iid, out ps) == 0) {
-        SetStr(ps, 2, relaunchCmd);   // RelaunchCommand (used when pinned)
-        SetStr(ps, 3, icon);          // RelaunchIconResource
-        SetStr(ps, 4, displayName);   // RelaunchDisplayNameResource
+        // Only the AppUserModel.ID is set. Any relaunch target for this ID - the RelaunchCommand/
+        // RelaunchIconResource window properties, or a shortcut carrying the same ID - makes newer
+        // Windows 11 builds resolve the button icon through the Store (MSIX) Claude package, which
+        // fails and shows a blank page. Without one, the taskbar uses the WM_SETICON icon below.
         SetStr(ps, 5, appId);         // AppUserModel.ID -> own taskbar button
         ps.Commit();
         Marshal.ReleaseComObject(ps);
@@ -323,15 +324,14 @@ switch ($PSCmdlet.ParameterSetName) {
 
     if (-not (Test-Path $IconPath)) { return }                 # not installed: plain launch, no branding
     Import-Native
-    $relaunch = "powershell.exe $LaunchArgs"
     $pids = @()
     for ($i = 0; $i -lt 45; $i++) {                             # wait up to ~90 s for the window
       Start-Sleep -Seconds 2
       $pids = Get-ProfileProcessIds $DataDir
-      if ($pids.Count -and [ClaudeProfilesNative]::BrandWindows($pids, $AppId, $IconPath, $relaunch, "Claude ($Name)") -gt 0) { break }
+      if ($pids.Count -and [ClaudeProfilesNative]::BrandWindows($pids, $AppId, $IconPath) -gt 0) { break }
     }
     Start-Sleep -Seconds 6                                      # second pass in case the main window replaced a splash
-    if ($pids.Count) { [void][ClaudeProfilesNative]::BrandWindows($pids, $AppId, $IconPath, $relaunch, "Claude ($Name)") }
+    if ($pids.Count) { [void][ClaudeProfilesNative]::BrandWindows($pids, $AppId, $IconPath) }
   }
 
   'Uninstall' {

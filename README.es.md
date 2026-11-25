@@ -96,7 +96,8 @@ El instalador también copia los scripts a `%LOCALAPPDATA%\ClaudeProfiles\` y co
 
 - Abre cada cuenta desde su acceso directo. La app principal y todos los perfiles pueden estar abiertos al mismo tiempo.
 - **Barra de tareas:** unos segundos después de abrirlo, el botón del perfil en la barra de tareas cambia a su color y se separa del botón de Claude principal.
-- **Anclarlo:** haz clic derecho en el *botón de color* del perfil abierto y elige **Anclar a la barra de tareas**. El botón anclado mantiene el color y abre ese perfil.
+- **Anclarlo:** abre el menú **Inicio**, haz clic derecho en **Claude (Work)** y elige **Anclar a la barra de tareas** (o arrastra el acceso directo del escritorio a la barra de tareas). El botón anclado mantiene el color y abre ese perfil. Con el perfil abierto, su ventana tiene su propio botón de color junto al botón anclado. No ancles el botón de la ventana abierta: ese botón anclado no abriría el perfil.
+- **¿Lo anclaste con una versión anterior?** Desánclalo y vuelve a anclarlo desde el menú Inicio, como arriba.
 - Si la ventana de un perfil se abrió de otra forma (no desde su acceso directo o botón anclado), puede mostrar el ícono predeterminado. Ábrelo de nuevo desde el acceso directo para corregirlo.
 
 ### Otros comandos

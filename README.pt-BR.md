@@ -96,7 +96,8 @@ O instalador também copia os scripts para `%LOCALAPPDATA%\ClaudeProfiles\` e co
 
 - Abra cada conta pelo seu atalho. O app principal e todos os perfis podem ficar abertos ao mesmo tempo.
 - **Barra de tarefas:** alguns segundos depois de abrir, o botão do perfil na barra de tarefas muda para a cor dele e se separa do botão do Claude principal.
-- **Fixar:** clique com o botão direito no *botão colorido* do perfil aberto e escolha **Fixar na barra de tarefas**. O botão fixado mantém a cor e abre aquele perfil.
+- **Fixar:** abra o menu **Iniciar**, clique com o botão direito em **Claude (Work)** e escolha **Fixar na barra de tarefas** (ou arraste o atalho da área de trabalho para a barra de tarefas). O botão fixado mantém a cor e abre aquele perfil. Com o perfil aberto, a janela dele tem seu próprio botão colorido ao lado do botão fixado. Não fixe o botão da própria janela aberta: esse botão fixado não abriria o perfil.
+- **Fixou com uma versão anterior?** Desafixe e fixe de novo pelo menu Iniciar, como acima.
 - Se a janela de um perfil for aberta de outro jeito (sem ser pelo atalho ou pelo botão fixado), ela pode aparecer com o ícone padrão. Abra pelo atalho de novo para corrigir.
 
 ### Outros comandos
